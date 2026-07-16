@@ -1,0 +1,13 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "launchpad-worker",
+	"main": "src/index.js",
+	"compatibility_date": "2026-07-10",
+	"observability": {
+		"enabled": true
+	},
+	"compatibility_flags": [
+		"nodejs_compat"
+	]
+	
+}

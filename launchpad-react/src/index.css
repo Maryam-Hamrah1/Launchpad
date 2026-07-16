@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+:root {
+  /* Backgrounds */
+
+  --color-bg: #0b1020;
+  --color-bg-elev: #141b2d;
+  --color-bg-elev2: #1d2742;
+
+  /* Text */
+
+  --color-ink: #f8fafc;
+  --color-ink-dim: #94a3b8;
+
+  /* Borders */
+
+  --color-line: rgba(248, 250, 252, 0.08);
+  --color-line-strong: rgba(248, 250, 252, 0.15);
+
+  /* Primary */
+
+  --color-primary: #ff8a3d;
+  --color-primary-light: #ffb86c;
+
+  /* Accent */
+
+  --color-accent: #6ea8fe;
+
+  /* Success */
+
+  --color-success: #31d0aa;
+
+  /* Error */
+
+  --color-danger: #ff6b6b;
+
+  /* Shadow */
+
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+.light {
+  /* Backgrounds */
+
+  --color-bg: #f6f8fc;
+  --color-bg-elev: #ffffff;
+  --color-bg-elev2: #eef2f8;
+
+  /* Text */
+
+  --color-ink: #111827;
+  --color-ink-dim: #64748b;
+
+  /* Borders */
+
+  --color-line: rgba(17, 24, 39, 0.08);
+  --color-line-strong: rgba(17, 24, 39, 0.15);
+
+  /* Primary */
+
+  --color-primary: #ff8a3d;
+  --color-primary-light: #ffb86c;
+
+  /* Accent */
+
+  --color-accent: #2563eb;
+
+  /* Success */
+
+  --color-success: #10b981;
+
+  /* Error */
+
+  --color-danger: #ef4444;
+
+  /* Shadow */
+
+  --shadow-card: 0 12px 35px rgba(15, 23, 42, 0.08);
+}
