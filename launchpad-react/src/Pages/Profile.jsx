@@ -5,177 +5,568 @@ import { GoalContext } from "../components/GoalContext";
 
 function getEffectiveStatus(goal) {
   if (goal.status === "draft") return "draft";
-  if (goal.roadmap && goal.roadmap.months.every((m) => m.status === "completed")) return "completed";
+
+  if (
+    goal.roadmap &&
+    goal.roadmap.months.every((m) => m.status === "completed")
+  ) {
+    return "completed";
+  }
+
   return "in-progress";
 }
 
 function collectCompletedDays(goals) {
   const days = [];
+
   for (const goal of goals) {
     if (!goal.roadmap) continue;
+
     for (const month of goal.roadmap.months) {
       if (!month.detail) continue;
+
       for (const week of month.detail.weeks) {
         if (!week.detail) continue;
+
         for (const day of week.detail.days) {
-          if (day.status === "completed" && day.completedAt) days.push(day);
+          if (day.status === "completed" && day.completedAt) {
+            days.push(day);
+          }
         }
       }
     }
   }
+
   return days;
 }
 
-function computeStreak(completedDays) {
-  const dateStrings = new Set(completedDays.map((d) => new Date(d.completedAt).toDateString()));
+function computeStreak(days) {
+  const dates = new Set(
+    days.map((d) => new Date(d.completedAt).toDateString())
+  );
+
   let streak = 0;
-  const cursor = new Date();
-  while (dateStrings.has(cursor.toDateString())) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
+  const today = new Date();
+
+  while (dates.has(today.toDateString())) {
+    streak++;
+    today.setDate(today.getDate() - 1);
   }
+
   return streak;
 }
 
 function computeBadges(goals, streak) {
   const badges = [];
-  const hasAnyGoal = goals.length > 0;
-  const hasCompletedWeek = goals.some(
-    (g) => g.roadmap?.months.some((m) => m.detail?.weeks.some((w) => w.status === "completed"))
-  );
-  const hasCompletedMonth = goals.some((g) => g.roadmap?.months.some((m) => m.status === "completed"));
-  const hasCompletedGoal = goals.some((g) => getEffectiveStatus(g) === "completed");
 
-  if (hasAnyGoal) badges.push({ icon: "🎯", label: "First Goal Created" });
-  if (hasCompletedWeek) badges.push({ icon: "✅", label: "First Week Completed" });
-  if (hasCompletedMonth) badges.push({ icon: "🗓️", label: "First Month Completed" });
-  if (streak >= 7) badges.push({ icon: "🔥", label: "7-Day Streak" });
-  if (hasCompletedGoal) badges.push({ icon: "🏁", label: "Goal Achieved" });
+  const goalCreated = goals.length > 0;
+
+  const weekCompleted = goals.some((g) =>
+    g.roadmap?.months.some((m) =>
+      m.detail?.weeks.some((w) => w.status === "completed")
+    )
+  );
+
+  const monthCompleted = goals.some((g) =>
+    g.roadmap?.months.some((m) => m.status === "completed")
+  );
+
+  const goalCompleted = goals.some(
+    (g) => getEffectiveStatus(g) === "completed"
+  );
+
+
+  if (goalCreated)
+    badges.push({
+      icon: "🎯",
+      title: "First Goal",
+      desc: "Created your first goal",
+    });
+
+
+  if (weekCompleted)
+    badges.push({
+      icon: "✅",
+      title: "First Week",
+      desc: "Completed a milestone",
+    });
+
+
+  if (monthCompleted)
+    badges.push({
+      icon: "🗓",
+      title: "First Month",
+      desc: "Finished a month",
+    });
+
+
+  if (streak >= 7)
+    badges.push({
+      icon: "🔥",
+      title: "7 Day Streak",
+      desc: "Stayed consistent",
+    });
+
+
+  if (goalCompleted)
+    badges.push({
+      icon: "🏆",
+      title: "Goal Achieved",
+      desc: "Completed a goal",
+    });
+
 
   return badges;
 }
 
+
+function Card({ children, className = "" }) {
+  return (
+    <div
+      className={`rounded-3xl p-6 ${className}`}
+      style={{
+        background: "var(--color-bg-elev)",
+        border: "1px solid var(--color-line)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+
+
 export default function Profile() {
+
   const { user, signOut } = useContext(AuthContext);
   const { goals, loading } = useContext(GoalContext);
   const navigate = useNavigate();
 
+
   const stats = useMemo(() => {
-    const activeGoals = goals.filter((g) => getEffectiveStatus(g) === "in-progress");
-    const currentGoal = activeGoals[0] || null;
-    const streak = computeStreak(collectCompletedDays(goals));
-    const badges = computeBadges(goals, streak);
-    return { activeGoals, currentGoal, streak, badges };
+
+    const activeGoals = goals.filter(
+      (g) => getEffectiveStatus(g) === "in-progress"
+    );
+
+
+    const streak = computeStreak(
+      collectCompletedDays(goals)
+    );
+
+
+    return {
+      activeGoals,
+      streak,
+      badges: computeBadges(goals, streak)
+    };
+
   }, [goals]);
 
-  async function handleLogout() {
-    await signOut();
-    navigate("/login");
-  }
+
 
   if (loading) {
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0E1526] text-[#9AA5BD]">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          background:"var(--color-bg)",
+          color:"var(--color-ink-dim)"
+        }}
+      >
         Loading...
       </div>
     );
+
   }
 
-  const fullName = user?.user_metadata?.full_name || "there";
-  const initial = fullName.charAt(0).toUpperCase();
+
+
+  const fullName =
+    user?.user_metadata?.full_name || "User";
+
+
+  const initial =
+    fullName.charAt(0).toUpperCase();
+
+
 
   return (
-    <div className="min-h-screen bg-[#0E1526] text-[#EDEFF6] py-12 px-5">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-5 mb-10">
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-2xl flex-shrink-0"
-            style={{ background: "#1B2540", border: "2px solid #F5B342", color: "#F5B342" }}
+
+    <div
+      className="w-full"
+      style={{
+        color:"var(--color-ink)"
+      }}
+    >
+
+
+      {/* Hero Profile */}
+
+      <Card className="mb-8">
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+
+
+          <div className="flex items-center gap-5">
+            <div
+              className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold"
+              style={{
+                background:
+                "linear-gradient(135deg,var(--color-primary),var(--color-primary-light))",
+                color:"#111"
+              }}
+            >
+              {initial}
+            </div>
+
+
+
+            <div>
+
+              <h1
+                className="text-2xl font-bold"
+                style={{
+                  fontFamily:"'Space Grotesk',sans-serif"
+                }}
+              >
+                {fullName}
+              </h1>
+
+
+              <p
+                className="text-sm mt-1"
+                style={{
+                  color:"var(--color-ink-dim)"
+                }}
+              >
+                {user?.email}
+              </p>
+
+
+              <p
+                className="text-sm mt-3 max-w-md leading-6"
+                style={{
+                  color:"var(--color-ink-dim)"
+                }}
+              >
+                Building my future through learning, consistency and AI powered goals.
+              </p>
+
+
+            </div>
+
+
+          </div>
+
+
+
+          <button
+            className="rounded-xl px-5 py-3 font-semibold text-sm"
+            style={{
+              background:"var(--color-primary)",
+              color:"#111"
+            }}
           >
-            {initial}
-          </div>
-          <div>
-            <h1 className="font-bold text-2xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              {fullName}
-            </h1>
-            <p className="text-sm text-[#9AA5BD]">{user?.email}</p>
-          </div>
+            Edit Profile
+          </button>
+
+
         </div>
 
-        {/* Current goal + level + streak */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="rounded-2xl border border-white/10 bg-[#141D33] p-5">
-          <span className="font-mono text-[11px] text-[#9AA5BD] block mb-2">CURRENT GOAL</span>
-            <span className="text-sm">{stats.currentGoal?.title || "None yet"}</span>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-[#141D33] p-5">
-            <span className="font-mono text-[11px] text-[#9AA5BD] block mb-2">CURRENT LEVEL</span>
-            <span className="text-sm">{stats.currentGoal?.experience_level || "—"}</span>
-          </div>
-          <div className="rounded-2xl border border-white/10 bg-[#141D33] p-5">
-            <span className="font-mono text-[11px] text-[#9AA5BD] block mb-2">STREAK</span>
-            <span className="font-bold text-2xl" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#FF7A6B" }}>
-              {stats.streak}d
-            </span>
-          </div>
-        </div>
 
-        {/* Active goals */}
-        <div className="rounded-2xl border border-white/10 bg-[#141D33] p-6 mb-8">
-          <h2 className="font-semibold text-lg mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Active Goals
+      </Card>
+
+
+
+
+
+      {/* Stats */}
+
+      <div className="grid md:grid-cols-3 gap-5 mb-8">
+
+
+        <Card>
+
+          <p
+            className="text-xs mb-2"
+            style={{
+              color:"var(--color-ink-dim)"
+            }}
+          >
+            ACTIVE GOALS
+          </p>
+
+
+          <h2
+            className="text-3xl font-bold"
+            style={{
+              color:"var(--color-primary)"
+            }}
+          >
+            {stats.activeGoals.length}
           </h2>
-          {stats.activeGoals.length === 0 ? (
-            <p className="text-sm text-[#9AA5BD]">No active goals yet.</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {stats.activeGoals.map((g) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => navigate(`/goals/${g.id}`)}
-                  className="flex items-center justify-between text-left rounded-lg px-3 py-2.5 hover:bg-white/5 transition"
-                >
-                  <span className="text-sm">{g.title}</span>
-                  <span className="font-mono text-xs text-[#9AA5BD]">{g.progress || 0}%</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Badges */}
-        <div className="rounded-2xl border border-white/10 bg-[#141D33] p-6 mb-8">
-          <h2 className="font-semibold text-lg mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Achievements
+        </Card>
+
+
+
+        <Card>
+
+          <p
+            className="text-xs mb-2"
+            style={{
+              color:"var(--color-ink-dim)"
+            }}
+          >
+            CURRENT STREAK
+          </p>
+
+
+          <h2
+            className="text-3xl font-bold"
+            style={{
+              color:"var(--color-success)"
+            }}
+          >
+            {stats.streak}d
           </h2>
-          {stats.badges.length === 0 ? (
-            <p className="text-sm text-[#9AA5BD]">Complete tasks to start earning badges.</p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {stats.badges.map((b) => (
-                <div
-                  key={b.label}
-                  className="flex flex-col items-center text-center rounded-xl px-3 py-4"
-                  style={{ border: "1px solid #F5B342", background: "rgba(245,179,66,0.08)" }}
-                >
-                  <span className="text-xl mb-1">{b.icon}</span>
-                  <span className="text-xs">{b.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-full px-6 py-3 text-sm font-semibold border border-white/20 hover:border-[#FF7A6B] hover:text-[#FF7A6B] transition"
-        >
-          Log Out
-        </button>
+
+        </Card>
+
+
+        <Card>
+
+          <p
+            className="text-xs mb-2"
+            style={{
+              color:"var(--color-ink-dim)"
+            }}
+          >
+            ACHIEVEMENTS
+          </p>
+
+
+          <h2
+            className="text-3xl font-bold"
+            style={{
+              color:"var(--color-accent)"
+            }}
+          >
+            {stats.badges.length}
+          </h2>
+
+
+        </Card>
+
+
       </div>
+
+
+
+
+
+
+      {/* Active Goals */}
+
+
+      <Card className="mb-8">
+
+
+        <h2
+          className="text-xl font-semibold mb-5"
+          style={{
+            fontFamily:"'Space Grotesk',sans-serif"
+          }}
+        >
+          Active Goals
+        </h2>
+
+
+
+        {
+          stats.activeGoals.length === 0 ? (
+
+            <p
+              className="text-sm"
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              No active goals yet.
+            </p>
+
+
+          ) : (
+
+
+            <div className="grid md:grid-cols-2 gap-4">
+
+
+              {
+                stats.activeGoals.map((goal)=>(
+
+                  <button
+                    key={goal.id}
+                    onClick={()=>navigate(`/goals/${goal.id}`)}
+                    className="text-left rounded-2xl p-4 transition"
+                    style={{
+                      background:"var(--color-bg)",
+                      border:"1px solid var(--color-line)"
+                    }}
+                  >
+                    <h3
+                      className="font-semibold mb-2"
+                      style={{
+                        fontFamily:"'Space Grotesk',sans-serif"
+                      }}
+                    >
+                      {goal.title}
+                    </h3>
+
+
+                    <div
+                      className="text-xs"
+                      style={{
+                        color:"var(--color-ink-dim)"
+                      }}
+                    >
+                      {goal.category || "Career"}
+                    </div>
+
+
+                  </button>
+
+
+                ))
+              }
+
+
+            </div>
+
+
+          )
+        }
+
+
+      </Card>
+
+
+
+
+
+
+      {/* Achievements */}
+
+
+      <Card className="mb-8">
+
+
+        <h2
+          className="text-xl font-semibold mb-5"
+          style={{
+            fontFamily:"'Space Grotesk',sans-serif"
+          }}
+        >
+          Achievements
+        </h2>
+
+
+
+        {
+          stats.badges.length === 0 ? (
+
+            <p
+              className="text-sm"
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              Complete tasks to unlock achievements.
+            </p>
+
+
+          ) : (
+
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+
+              {
+                stats.badges.map((badge)=>(
+
+                  <div
+                    key={badge.title}
+                    className="rounded-2xl p-5"
+                    style={{
+                      background:"var(--color-bg)",
+                      border:"1px solid var(--color-line)"
+                    }}
+                  >
+
+                    <div className="text-3xl mb-3">
+                      {badge.icon}
+                    </div>
+
+
+                    <h3
+                      className="font-semibold"
+                    >
+                      {badge.title}
+                    </h3>
+
+
+                    <p
+                      className="text-xs mt-1"
+                      style={{
+                        color:"var(--color-ink-dim)"
+                      }}
+                    >
+                      {badge.desc}
+                    </p>
+
+
+                  </div>
+
+
+                ))
+              }
+
+
+            </div>
+
+
+          )
+        }
+
+
+      </Card>
+
+
+
+
+
+
+      <button
+        onClick={async()=>{
+          await signOut();
+          navigate("/login");
+        }}
+        className="rounded-xl px-6 py-3 font-semibold text-sm"
+        style={{
+          border:"1px solid var(--color-line)",
+          color:"var(--color-danger)"
+        }}
+      >
+        Log Out
+      </button>
+
+
+
     </div>
+
   );
 }

@@ -3,90 +3,253 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../components/AuthContext";
 
 export default function Login() {
+
   const { signIn } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [email,setEmail] = useState("");
+  const [password,setPassword] = useState("");
+  const [error,setError] = useState("");
+  const [submitting,setSubmitting] = useState(false);
 
-  async function handleSubmit(e) {
+
+  async function handleSubmit(e){
+
     e.preventDefault();
+
     setError("");
     setSubmitting(true);
 
-    const { error: signInError } = await signIn(email, password);
+    const {error:signInError}=await signIn(email,password);
 
     setSubmitting(false);
-    if (signInError) {
+
+    if(signInError){
       setError(signInError);
       return;
     }
+
     navigate("/dashboard");
   }
 
+
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0E1526] text-[#EDEFF6] px-5">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="font-bold text-3xl mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+
+    <div
+      className="min-h-screen flex items-center justify-center px-5 relative overflow-hidden"
+      style={{
+        background:`
+        radial-gradient(circle at 20% 20%, rgba(255,138,61,.18), transparent 35%),
+        radial-gradient(circle at 80% 75%, rgba(110,168,254,.15), transparent 35%),
+        var(--color-bg)`
+        
+      }}
+    >
+
+
+      {/* Background Glow */}
+
+      <div className="absolute w-72 h-72 rounded-full blur-3xl opacity-30 bg-primary/30 top-16 left-10"></div>
+
+      <div className="absolute w-80 h-80 rounded-full blur-3xl opacity-20 bg-accent/30 bottom-10 right-10"></div>
+
+
+
+
+
+      <div className="w-full max-w-sm relative z-10">
+
+
+
+        {/* Header */}
+
+
+        <div className="text-center mb-10">
+
+          <h1
+            className="text-4xl font-bold tracking-tight mb-3"
+            style={{
+              color:"var(--color-ink)",
+              fontFamily:"'Space Grotesk',sans-serif"
+            }}
+          >
             Welcome back
           </h1>
-          <p className="text-sm text-[#9AA5BD]">Log in to continue your journey.</p>
+
+
+          <p
+            className="text-sm"
+            style={{
+              color:"var(--color-ink-dim)"
+            }}
+          >
+            Log in to continue your Launchpad journey.
+          </p>
+
+
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+
+
+
+
+        {/* Card */}
+
+
+
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl p-6 space-y-5 border backdrop-blur-xl"
+          style={{
+            backgroundColor:"color-mix(in srgb, var(--color-bg-elev) 85%, transparent)",
+            borderColor:"var(--color-line)",
+            boxShadow:"var(--shadow-card)"
+          }}
+        >
+
+
+
+
+
           {error && (
-            <div className="rounded-lg border border-[#FF7A6B] bg-[#FF7A6B]/10 px-4 py-3 text-sm text-[#FF7A6B]">
+
+            <div
+              className="rounded-xl px-4 py-3 text-sm"
+              style={{
+                color:"var(--color-danger)",
+                background:"rgba(255,107,107,.1)",
+                border:"1px solid rgba(255,107,107,.25)"
+              }}
+            >
               {error}
             </div>
+
           )}
 
-          <div>
-            <label htmlFor="email" className="block text-xs font-mono text-[#9AA5BD] mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-lg px-4 py-3 text-sm bg-[#1B2540] text-[#EDEFF6] placeholder-[#9AA5BD] border border-white/10 focus:outline-none focus:border-[#F5B342] transition-colors"
-            />
-          </div>
+
+
+
+
+
 
           <div>
-            <label htmlFor="password" className="block text-xs font-mono text-[#9AA5BD] mb-2">
+
+            <label className="block text-xs font-mono mb-2" style={{color:"var(--color-ink-dim)"}}>
+              Email
+            </label>
+
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e)=>setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+              className="w-full rounded-xl px-4 py-3 text-sm outline-none border transition focus:ring-2"
+              style={{
+                backgroundColor:"var(--color-bg-elev2)",
+                color:"var(--color-ink)",
+                borderColor:"var(--color-line)"
+              }}
+            />
+
+
+          </div>
+
+
+
+
+
+
+
+
+          <div>
+
+
+            <label className="block text-xs font-mono mb-2" style={{color:"var(--color-ink-dim)"}}>
               Password
             </label>
+
+
+
             <input
               type="password"
-              id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e)=>setPassword(e.target.value)}
               required
-              className="w-full rounded-lg px-4 py-3 text-sm bg-[#1B2540] text-[#EDEFF6] placeholder-[#9AA5BD] border border-white/10 focus:outline-none focus:border-[#F5B342] transition-colors"
+              placeholder="••••••••"
+              className="w-full rounded-xl px-4 py-3 text-sm outline-none border transition focus:ring-2"
+              style={{
+                backgroundColor:"var(--color-bg-elev2)",
+                color:"var(--color-ink)",
+                borderColor:"var(--color-line)"
+              }}
             />
+
+
           </div>
+
+
+
+
+
+
 
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-full px-6 py-3.5 text-sm font-semibold bg-[#F5B342] text-[#1A1305] hover:brightness-110 transition disabled:opacity-50 mt-2"
+            className="w-full rounded-full py-3.5 text-sm font-semibold transition hover:scale-[1.02] hover:brightness-110 disabled:opacity-50"
+            style={{
+              background:"linear-gradient(135deg,var(--color-primary),var(--color-primary-light))",
+              color:"#1A1305",
+              boxShadow:"0 8px 25px rgba(255,138,61,.25)"
+            }}
           >
             {submitting ? "Logging in..." : "Log In"}
           </button>
+
+
+
+
         </form>
 
-        <p className="text-sm text-[#9AA5BD] text-center mt-6">
+
+
+
+
+
+        <p
+          className="text-center text-sm mt-7"
+          style={{
+            color:"var(--color-ink-dim)"
+          }}
+        >
+
           Don't have an account?{" "}
-          <Link to="/signup" className="font-semibold" style={{ color: "#F5B342" }}>
+
+
+          <Link
+            to="/signup"
+            className="font-semibold hover:underline"
+            style={{
+              color:"var(--color-primary)"
+            }}
+          >
             Sign up
           </Link>
+
+
         </p>
+
+
+
+
       </div>
+
+
     </div>
+
   );
 }

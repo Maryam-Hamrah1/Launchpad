@@ -17,6 +17,7 @@ import Progress from './Pages/Progress'
 import Profile from './Pages/Profile'
 import Planner from './Pages/Planner'
 import Settings from './Pages/Settings'
+import Layout from './components/Layout'
 
 
 function App() {
@@ -28,17 +29,18 @@ function App() {
       <Route path='/login' element={<Login/>}/>
       <Route path='/signUp' element={<SignUp/>}/>
 
-     <Route path='/dashboard' element={
-      <ProtectedRoute>
-        <Dashboard/>
-      </ProtectedRoute>
-      }/>
-
-    <Route path='/create-goal' element={<CreateGoal/>}/>
+      <Route path='/create-goal' element={<CreateGoal/>}/>
     <Route path='/goals/:goalId' element={<GoalDetails/>}/>
     <Route path='/goals/:goalId/month/:monthIndex' element={<MonthDetails/>}/>
     <Route path='/goals/:goalId/month/:monthIndex/week/:weekIndex' element={<WeekDetails/>}/>
     <Route path='/goals/:goalId/month/:monthIndex/week/:weekIndex/day/:dayIndex' element={<DailyPlanner/>}/>
+
+    <Route element={<Layout/>}>
+     <Route path='/dashboard' element={
+       <ProtectedRoute>
+        <Dashboard/>
+      </ProtectedRoute>
+      }/>
     <Route path='/ai-coach' element={<AICoach/>}/>
     <Route path='/goals' element={<Goals/>}/>
     <Route path='/resources' element={<Resources/>}/>
@@ -46,6 +48,7 @@ function App() {
     <Route path='/profile' element={<Profile/>}/>
     <Route path='/planner' element={<Planner/>}/>
     <Route path='/Settings' element={<Settings/>}/>
+    </Route>
     </Routes>
     </>
   )

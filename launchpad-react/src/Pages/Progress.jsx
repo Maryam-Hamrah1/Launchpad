@@ -1,155 +1,656 @@
 import { useContext, useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 import { GoalContext } from "../components/GoalContext";
 
-function getEffectiveStatus(goal) {
-  if (goal.status === "draft") return "draft";
-  if (goal.roadmap && goal.roadmap.months.every((m) => m.status === "completed")) return "completed";
-  return "in-progress";
-}
 
-// Walks every day across every goal's roadmap and returns the ones marked completed.
 function collectCompletedDays(goals) {
   const days = [];
+
   for (const goal of goals) {
     if (!goal.roadmap) continue;
+
     for (const month of goal.roadmap.months) {
       if (!month.detail) continue;
+
       for (const week of month.detail.weeks) {
         if (!week.detail) continue;
+
         for (const day of week.detail.days) {
-          if (day.status === "completed" && day.completedAt) days.push(day);
-        }
-      }
-    }
-  }
-  return days;
-}
-
-function computeStreak(completedDays) {
-  const dateStrings = new Set(completedDays.map((d) => new Date(d.completedAt).toDateString()));
-  let streak = 0;
-  const cursor = new Date();
-  while (dateStrings.has(cursor.toDateString())) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-  return streak;
-}
-
-function StatCard({ label, value, accent }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-[#141D33] p-5">
-      <span className="font-mono text-[11px] text-[#9AA5BD] block mb-2">{label}</span>
-      <span
-        className="font-bold text-2xl"
-        style={{ fontFamily: "'Space Grotesk', sans-serif", color: accent || "#EDEFF6" }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
-export default function Progress() {
-  const { goals, loading } = useContext(GoalContext);
-
-  const stats = useMemo(() => {
-    const nonDraft = goals.filter((g) => g.status !== "draft");
-    const overallProgress =
-      nonDraft.length === 0
-        ? 0
-        : Math.round(nonDraft.reduce((sum, g) => sum + (g.progress || 0), 0) / nonDraft.length);
-
-    const completedGoalsCount = nonDraft.filter((g) => getEffectiveStatus(g) === "completed").length;
-    const completionRate = nonDraft.length === 0 ? 0 : Math.round((completedGoalsCount / nonDraft.length) * 100);
-
-    let completedTasks = 0;
-    let learningHours = 0;
-    for (const goal of goals) {
-      if (!goal.roadmap) continue;
-      for (const month of goal.roadmap.months) {
-        if (!month.detail) continue;
-        for (const week of month.detail.weeks) {
-          if (!week.detail) continue;
-          completedTasks += week.detail.checklist.filter((t) => t.done).length;
-          if (week.status === "completed") learningHours += week.detail.estimatedHours || 0;
-          for (const day of week.detail.days) {
-            if (!day.detail) continue;
-            completedTasks += day.detail.tasks.filter((t) => t.done).length;
+          if (day.status === "completed" && day.completedAt) {
+            days.push(day);
           }
         }
       }
     }
-
-    const completedDays = collectCompletedDays(goals);
-    const streak = computeStreak(completedDays);
-
-    const chartData = nonDraft.map((g) => ({
-      name: g.title.length > 18 ? g.title.slice(0, 18) + "…" : g.title,
-      progress: g.progress || 0,
-    }));
-
-    return { overallProgress, completionRate, completedTasks, learningHours, streak, chartData };
-  }, [goals]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0E1526] text-[#9AA5BD]">
-        Loading...
-      </div>
-    );
   }
 
+  return days;
+}
+
+
+
+function computeStreak(days) {
+
+  const dates = new Set(
+    days.map((d) =>
+      new Date(d.completedAt).toDateString()
+    )
+  );
+
+
+  let streak = 0;
+  const cursor = new Date();
+
+
+  while (dates.has(cursor.toDateString())) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+
+  return streak;
+}
+
+
+
+
+
+function ProgressCard({goal}){
+
+  const progress = goal.progress || 0;
+
+
   return (
-    <div className="min-h-screen bg-[#0E1526] text-[#EDEFF6] py-12 px-5">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <span className="inline-block font-mono text-xs rounded-full px-3 py-1.5 mb-3 border border-white/20 text-[#F5B342]">
-            📈 PROGRESS
-          </span>
-          <h1 className="font-bold text-3xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Your Progress
-          </h1>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
-          <StatCard label="OVERALL PROGRESS" value={`${stats.overallProgress}%`} accent="#F5B342" />
-          <StatCard label="COMPLETION RATE" value={`${stats.completionRate}%`} accent="#5EEAD4" />
-          <StatCard label="COMPLETED TASKS" value={stats.completedTasks} />
-          <StatCard label="LEARNING HOURS" value={`${stats.learningHours}h`} />
-          <StatCard label="CURRENT STREAK" value={`${stats.streak} days`} accent="#FF7A6B" />
+
+    <div
+      className="rounded-2xl p-5"
+      style={{
+        background:
+        "var(--color-bg-elev)",
+
+        border:
+        "1px solid var(--color-line)",
+
+        boxShadow:
+        "var(--shadow-card)"
+      }}
+    >
+
+
+      <div className="flex justify-between items-start mb-4">
+
+
+        <div>
+
+          <h3
+            className="font-semibold text-lg"
+            style={{
+              fontFamily:
+              "'Space Grotesk',sans-serif"
+            }}
+          >
+            {goal.title}
+          </h3>
+
+
+          <p
+            className="text-xs mt-1"
+            style={{
+              color:
+              "var(--color-ink-dim)"
+            }}
+          >
+            {goal.category || "Career"}
+          </p>
+
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#141D33] p-6">
-          <h2 className="font-semibold text-lg mb-6" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Progress by Goal
-          </h2>
-          {stats.chartData.length === 0 ? (
-            <p className="text-sm text-[#9AA5BD]">No goals yet — create one to see your progress here.</p>
-          ) : (
-            <div style={{ width: "100%", height: 260 }}>
-              <ResponsiveContainer>
-                <BarChart data={stats.chartData} margin={{ left: -10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fill: "#9AA5BD", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis
-                    domain={[0, 100]}
-                    tick={{ fill: "#9AA5BD", fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{ background: "#1B2540", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }}
-                    labelStyle={{ color: "#EDEFF6" }}
-                    itemStyle={{ color: "#F5B342" }}
-                  />
-                  <Bar dataKey="progress" fill="#F5B342" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-        </div>
+
+        <span
+          className="text-sm font-semibold"
+          style={{
+            color:
+            "var(--color-primary)"
+          }}
+        >
+          {progress}%
+        </span>
+
+
       </div>
+
+
+
+
+
+      <div
+        className="h-2 rounded-full overflow-hidden"
+        style={{
+          background:
+          "var(--color-bg-elev2)"
+        }}
+      >
+
+        <div
+          className="h-full rounded-full"
+          style={{
+            width:`${progress}%`,
+
+            background:
+            "linear-gradient(90deg,var(--color-primary),var(--color-primary-light))"
+          }}
+        />
+
+      </div>
+
+
+
+      <div
+        className="flex justify-between mt-4 text-xs"
+        style={{
+          color:
+          "var(--color-ink-dim)"
+        }}
+      >
+
+        <span>
+          {goal.timeline || "No timeline"}
+        </span>
+
+        <span>
+          {goal.priority || "Normal"}
+        </span>
+
+      </div>
+
+
     </div>
+
   );
+
+}
+
+
+
+
+
+
+function StatBox({title,value,color}){
+
+return (
+
+<div
+className="rounded-2xl p-5"
+style={{
+
+background:
+"var(--color-bg-elev)",
+
+border:
+"1px solid var(--color-line)"
+
+}}
+>
+
+
+<p
+className="text-xs mb-2"
+style={{
+color:
+"var(--color-ink-dim)"
+}}
+>
+{title}
+</p>
+
+
+<h2
+className="text-2xl font-bold"
+style={{
+fontFamily:
+"'Space Grotesk',sans-serif",
+
+color
+}}
+>
+{value}
+</h2>
+
+
+</div>
+
+)
+
+}
+
+
+
+
+
+
+
+export default function Progress(){
+
+
+const {goals,loading}=useContext(GoalContext);
+
+
+
+
+
+const stats=useMemo(()=>{
+
+
+const active =
+goals.filter(
+g=>g.status!=="draft"
+);
+
+
+
+const overall =
+active.length===0
+?
+0
+:
+Math.round(
+active.reduce(
+(sum,g)=>
+sum+(g.progress||0),
+0
+)
+/active.length
+);
+
+
+
+const completed =
+active.filter(
+g=>
+g.roadmap &&
+g.roadmap.months.every(
+m=>m.status==="completed"
+)
+).length;
+
+
+
+const completionRate =
+active.length===0
+?
+0
+:
+Math.round(
+(completed/active.length)*100
+);
+
+
+
+let tasks=0;
+
+
+for(const goal of goals){
+
+if(!goal.roadmap) continue;
+
+
+for(const month of goal.roadmap.months){
+
+if(!month.detail) continue;
+
+
+for(const week of month.detail.weeks){
+
+if(!week.detail) continue;
+
+
+tasks += week.detail.checklist.filter(
+t=>t.done
+).length;
+
+
+}
+
+}
+
+}
+
+
+
+const chartData =
+active.map(g=>({
+  name:
+g.title.length>15
+?
+g.title.slice(0,15)+"..."
+:
+g.title,
+
+progress:
+g.progress||0
+
+}));
+
+
+
+return {
+
+overall,
+completionRate,
+tasks,
+streak:
+computeStreak(
+collectCompletedDays(goals)
+),
+
+chartData
+
+};
+
+
+},[goals]);
+
+
+
+
+
+
+if(loading){
+
+return (
+
+<div
+className="flex justify-center items-center h-64"
+style={{
+color:
+"var(--color-ink-dim)"
+}}
+>
+Loading...
+</div>
+
+)
+
+}
+
+
+
+
+
+
+return (
+
+<div
+className="w-full space-y-8"
+>
+
+
+
+
+
+{/* HERO */}
+
+<section
+className="rounded-3xl p-6"
+style={{
+
+background:
+"linear-gradient(135deg,rgba(255,138,61,.12),rgba(110,168,254,.08),var(--color-bg-elev))",
+
+border:
+"1px solid var(--color-line)",
+
+boxShadow:
+"var(--shadow-card)"
+
+}}
+>
+
+
+<span
+className="inline-flex rounded-full px-3 py-1 text-xs mb-3"
+style={{
+
+background:
+"rgba(255,138,61,.12)",
+
+color:
+"var(--color-primary)"
+
+}}
+>
+📈 PROGRESS TRACKER
+</span>
+
+
+
+<h1
+className="text-3xl font-bold mb-2"
+style={{
+fontFamily:
+"'Space Grotesk',sans-serif"
+}}
+>
+Track Your Growth Journey
+</h1>
+
+
+<p
+className="text-sm"
+style={{
+color:
+"var(--color-ink-dim)"
+}}
+>
+See how far you have come and monitor every goal you are building.
+</p>
+
+
+</section>
+
+
+
+
+
+
+
+{/* STATS */}
+
+
+<div
+className="grid md:grid-cols-4 gap-5"
+>
+
+<StatBox
+title="OVERALL PROGRESS"
+value={`${stats.overall}%`}
+color="var(--color-primary)"
+/>
+
+
+<StatBox
+title="COMPLETION RATE"
+value={`${stats.completionRate}%`}
+color="var(--color-success)"
+/>
+
+
+<StatBox
+title="COMPLETED TASKS"
+value={stats.tasks}
+/>
+
+
+<StatBox
+title="CURRENT STREAK"
+value={`${stats.streak} days`}
+color="var(--color-accent)"
+/>
+
+
+</div>
+
+
+
+
+
+
+
+{/* CHART */}
+
+
+<div
+className="rounded-3xl p-6"
+style={{
+
+background:
+"var(--color-bg-elev)",
+
+border:
+"1px solid var(--color-line)",
+
+boxShadow:
+"var(--shadow-card)"
+
+}}
+>
+
+
+<h2
+className="font-semibold text-lg mb-6"
+style={{
+fontFamily:
+"'Space Grotesk',sans-serif"
+}}
+>
+Progress By Goals
+</h2>
+
+
+
+<div
+style={{
+height:280
+}}
+>
+
+
+<ResponsiveContainer>
+
+<BarChart data={stats.chartData}>
+
+
+<CartesianGrid
+strokeDasharray="3 3"
+stroke="var(--color-line)"
+vertical={false}
+/>
+
+
+<XAxis
+dataKey="name"
+tick={{
+fill:"var(--color-ink-dim)",
+fontSize:11
+}}
+/>
+
+
+<YAxis
+domain={[0,100]}
+tick={{
+fill:"var(--color-ink-dim)",
+fontSize:11
+}}
+/>
+
+
+<Tooltip />
+
+
+
+<Bar
+dataKey="progress"
+fill="var(--color-primary)"
+radius={[8,8,0,0]}
+/>
+
+
+</BarChart>
+
+
+</ResponsiveContainer>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+{/* GOAL CARDS */}
+
+
+<div>
+
+<h2
+className="text-xl font-semibold mb-5"
+style={{
+fontFamily:
+"'Space Grotesk',sans-serif"
+}}
+>
+Goal Progress
+</h2>
+
+
+
+<div
+className="grid md:grid-cols-2 gap-5"
+>
+
+{
+
+goals
+.filter(g=>g.status!=="draft")
+.map(goal=>(
+
+<ProgressCard
+key={goal.id}
+goal={goal}
+/>
+
+))
+
+}
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+</div>
+
+);
+
+
 }

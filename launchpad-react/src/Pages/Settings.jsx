@@ -1,110 +1,489 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../components/AuthContext";
+import { ThemeContext } from "../components/ThemeContext";
 import { supabase } from "../supabaseClient";
 
+
+function SettingCard({ title, children }) {
+  return (
+    <div
+      className="rounded-3xl p-6"
+      style={{
+        background: "var(--color-bg-elev)",
+        border: "1px solid var(--color-line)",
+        boxShadow: "var(--shadow-card)",
+      }}
+    >
+      <h2
+        className="text-lg font-semibold mb-5"
+        style={{
+          fontFamily: "'Space Grotesk', sans-serif",
+        }}
+      >
+        {title}
+      </h2>
+
+      {children}
+    </div>
+  );
+}
+
+
 export default function Settings() {
+
   const { user, signOut } = useContext(AuthContext);
+  const { isLight, toggleTheme } = useContext(ThemeContext);
+
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || "");
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
-  async function handleSaveProfile(e) {
+  const [fullName,setFullName] = useState(
+    user?.user_metadata?.full_name || ""
+  );
+
+  const [bio,setBio] = useState("");
+
+  const [saving,setSaving] = useState(false);
+  const [saved,setSaved] = useState(false);
+
+
+
+  async function saveProfile(e){
+
     e.preventDefault();
+
     setSaving(true);
     setSaved(false);
 
-    const { error } = await supabase.auth.updateUser({ data: { full_name: fullName } });
+
+    const {error} = await supabase.auth.updateUser({
+      data:{
+        full_name:fullName,
+        bio
+      }
+    });
+
 
     setSaving(false);
-    if (error) {
-      console.error("Failed to update profile:", error.message);
-      return;
+
+
+    if(!error){
+
+      setSaved(true);
+
+      setTimeout(()=>{
+        setSaved(false);
+      },2000);
+
     }
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+
   }
 
-  async function handleLogout() {
+
+
+  async function logout(){
+
     await signOut();
     navigate("/login");
+
   }
 
+
+
+
   return (
-    <div className="min-h-screen bg-[#0E1526] text-[#EDEFF6] py-12 px-5">
-      <div className="max-w-lg mx-auto">
-        <div className="mb-8">
-          <span className="inline-block font-mono text-xs rounded-full px-3 py-1.5 mb-3 border border-white/20 text-[#F5B342]">
-            ⚙️ SETTINGS
-          </span>
-          <h1 className="font-bold text-3xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Settings
-          </h1>
-        </div>
 
-        {/* Profile */}
-        <div className="rounded-2xl border border-white/10 bg-[#141D33] p-6 mb-6">
-          <h2 className="font-semibold text-lg mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Profile
-          </h2>
-          <form onSubmit={handleSaveProfile} className="flex flex-col gap-4">
-            <div>
-              <label htmlFor="fullName" className="block text-xs font-mono text-[#9AA5BD] mb-2">
-                Full name
-              </label>
-              <input
-                type="text"
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-lg px-4 py-3 text-sm bg-[#1B2540] text-[#EDEFF6] border border-white/10 focus:outline-none focus:border-[#F5B342] transition-colors"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-mono text-[#9AA5BD] mb-2">Email</label>
-              <div className="w-full rounded-lg px-4 py-3 text-sm bg-[#1B2540]/50 text-[#9AA5BD] border border-white/10">
-                {user?.email}
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={saving}
-              className="self-start rounded-full px-6 py-2.5 text-sm font-semibold bg-[#F5B342] text-[#1A1305] hover:brightness-110 transition disabled:opacity-50"
+    <div
+      className="w-full space-y-6"
+      style={{
+        color:"var(--color-ink)"
+      }}
+    >
+
+
+
+      {/* Hero */}
+
+      <div
+        className="rounded-3xl p-7"
+        style={{
+          background:
+          "linear-gradient(135deg,rgba(255,138,61,.12),rgba(110,168,254,.08),var(--color-bg-elev))",
+
+          border:"1px solid rgba(255,138,61,.18)",
+
+          boxShadow:"var(--shadow-card)"
+        }}
+      >
+
+        <span
+          className="inline-flex rounded-full px-3 py-1 text-xs mb-4"
+          style={{
+            background:"rgba(255,138,61,.12)",
+            color:"var(--color-primary)",
+            border:"1px solid rgba(255,138,61,.18)"
+          }}
+        >
+          ⚙️ SETTINGS
+        </span>
+
+
+        <h1
+          className="text-3xl font-bold mb-2"
+          style={{
+            fontFamily:"'Space Grotesk',sans-serif"
+          }}
+        >
+          Account Settings
+        </h1>
+
+
+        <p
+          className="text-sm"
+          style={{
+            color:"var(--color-ink-dim)"
+          }}
+        >
+          Manage your profile, preferences, and Launchpad experience.
+        </p>
+
+
+      </div>
+
+
+
+
+
+      {/* Profile */}
+
+
+      <SettingCard title="Profile">
+
+
+        <form
+          onSubmit={saveProfile}
+          className="space-y-5"
+        >
+
+
+          <div>
+
+            <label
+              className="text-xs block mb-2"
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
             >
-              {saving ? "Saving..." : saved ? "Saved ✓" : "Save Changes"}
-            </button>
-          </form>
+              Full Name
+            </label>
+
+
+            <input
+              value={fullName}
+              onChange={(e)=>setFullName(e.target.value)}
+              className="w-full rounded-xl px-4 py-3 outline-none text-sm"
+              style={{
+                background:"var(--color-bg)",
+                border:"1px solid var(--color-line)",
+                color:"var(--color-ink)"
+              }}
+            />
+
+          </div>
+
+
+
+
+          <div>
+
+            <label
+              className="text-xs block mb-2"
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              Email
+            </label>
+
+
+            <div
+              className="rounded-xl px-4 py-3 text-sm"
+              style={{
+                background:"var(--color-bg)",
+                border:"1px solid var(--color-line)",
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              {user?.email}
+            </div>
+            </div>
+
+
+
+
+
+          <div>
+
+            <label
+              className="text-xs block mb-2"
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              Bio
+            </label>
+
+
+            <textarea
+              rows="3"
+              value={bio}
+              onChange={(e)=>setBio(e.target.value)}
+              placeholder="Tell something about yourself..."
+              className="w-full rounded-xl px-4 py-3 outline-none text-sm resize-none"
+              style={{
+                background:"var(--color-bg)",
+                border:"1px solid var(--color-line)",
+                color:"var(--color-ink)"
+              }}
+            />
+
+          </div>
+
+
+
+
+          <button
+            disabled={saving}
+            className="rounded-xl px-6 py-3 font-semibold text-sm"
+            style={{
+              background:"var(--color-primary)",
+              color:"#111"
+            }}
+          >
+
+            {
+              saving
+              ?
+              "Saving..."
+              :
+              saved
+              ?
+              "Saved ✓"
+              :
+              "Save Changes"
+            }
+
+          </button>
+
+
+
+        </form>
+
+
+      </SettingCard>
+
+
+
+
+
+
+
+
+      {/* Appearance */}
+
+
+      <SettingCard title="Appearance">
+
+
+        <div className="flex items-center justify-between">
+
+
+          <div>
+
+            <h3 className="font-medium">
+              Theme
+            </h3>
+
+
+            <p
+              className="text-sm mt-1"
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              Choose your preferred interface style.
+            </p>
+
+
+          </div>
+
+
+
+          <button
+            onClick={toggleTheme}
+            className="rounded-xl px-5 py-2.5 text-sm font-semibold"
+            style={{
+              background:"var(--color-bg)",
+              border:"1px solid var(--color-line)"
+            }}
+          >
+
+            {
+              isLight
+              ?
+              "🌙 Dark"
+              :
+              "☀️ Light"
+            }
+
+          </button>
+
+
         </div>
 
-        {/* Theme */}
-        <div className="rounded-2xl border border-white/10 bg-[#141D33] p-6 mb-6">
-          <h2 className="font-semibold text-lg mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Theme
-          </h2>
-          <p className="text-sm text-[#9AA5BD]">
-            Dark mode is the only theme wired up in the app right now — light mode isn't connected to these pages yet.
-          </p>
+
+      </SettingCard>
+
+
+
+
+
+
+
+      {/* Notifications */}
+
+
+      <SettingCard title="Notifications">
+
+
+        <div className="space-y-4">
+
+
+          {
+            [
+              "Goal reminders",
+              "Weekly progress updates",
+              "AI Coach suggestions"
+            ].map(item=>(
+
+              <label
+                key={item}
+                className="flex items-center justify-between"
+              >
+
+                <span className="text-sm">
+                  {item}
+                </span>
+
+
+                <input
+                  type="checkbox"
+                  defaultChecked
+                />
+
+              </label>
+
+
+            ))
+          }
+
+
         </div>
 
-        {/* Language */}
-        <div className="rounded-2xl border border-white/10 bg-[#141D33] p-6 mb-8">
-          <h2 className="font-semibold text-lg mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Language
-          </h2>
-          <p className="text-sm text-[#9AA5BD]">
-            English only for now — Dari support isn't built into the app yet.
-          </p>
+
+      </SettingCard>
+
+
+
+
+
+
+
+      {/* Preferences */}
+
+
+      <SettingCard title="Preferences">
+
+
+        <div className="space-y-4 text-sm">
+
+
+          <div
+            className="flex justify-between"
+          >
+
+            <span
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              Language
+            </span>
+
+            <span>
+              English
+            </span>
+
+          </div>
+
+
+
+
+          <div
+            className="flex justify-between"
+          >
+
+            <span
+              style={{
+                color:"var(--color-ink-dim)"
+              }}
+            >
+              Roadmap View
+            </span>
+
+            <span>
+              Monthly
+            </span>
+
+          </div>
+
+
         </div>
+
+
+      </SettingCard>
+
+
+
+
+
+
+
+      {/* Account */}
+
+
+      <SettingCard title="Account">
+
+
         <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-full px-6 py-3 text-sm font-semibold border border-white/20 hover:border-[#FF7A6B] hover:text-[#FF7A6B] transition"
+          onClick={logout}
+          className="rounded-xl px-6 py-3 text-sm font-semibold"
+          style={{
+            border:"1px solid var(--color-danger)",
+            color:"var(--color-danger)"
+          }}
         >
           Log Out
         </button>
-      </div>
+
+
+      </SettingCard>
+
+
+
+
     </div>
+
   );
 }
