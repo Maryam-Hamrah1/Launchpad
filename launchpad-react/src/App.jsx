@@ -4,7 +4,6 @@ import Dashboard from './Pages/Dashbord'
 import CreateGoal from './components/CreateGoal'
 import GoalDetails from './Pages/GoalDetails'
 import MonthDetails from './Pages/MonthDetails'
-import WeekDetails from './Pages/WeekDetails'
 import DailyPlanner from './Pages/DailyPlanner'
 import LaunchpadLanding from './Pages/LaunchpadLanding'
 import Login from './Pages/Login'
@@ -32,8 +31,7 @@ function App() {
       <Route path='/create-goal' element={<CreateGoal/>}/>
     <Route path='/goals/:goalId' element={<GoalDetails/>}/>
     <Route path='/goals/:goalId/month/:monthIndex' element={<MonthDetails/>}/>
-    <Route path='/goals/:goalId/month/:monthIndex/week/:weekIndex' element={<WeekDetails/>}/>
-    <Route path='/goals/:goalId/month/:monthIndex/week/:weekIndex/day/:dayIndex' element={<DailyPlanner/>}/>
+    <Route path='/goals/:goalId/month/:monthIndex/day/:dayIndex' element={<DailyPlanner/>}/>
 
     <Route element={<Layout/>}>
      <Route path='/dashboard' element={

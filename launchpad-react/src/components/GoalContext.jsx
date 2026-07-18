@@ -1,10 +1,10 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import { supabase } from "../supabaseClient";
-import {AuthContext} from "./AuthContext"
+import { AuthContext } from "./AuthContext";
 
 export const GoalContext = createContext();
 
-
+const DAYS_PER_MONTH = 30;
 
 function mapFormToRow(form, status, userId) {
   return {
@@ -24,9 +24,15 @@ function mapFormToRow(form, status, userId) {
   };
 }
 
-export function GoalProvider({ children }) {
+function buildBlankDays() {
+  return Array.from({ length: DAYS_PER_MONTH }, (_, i) => ({
+    index: i + 1,
+    completed: false,
+  }));
+}
 
-  const {user} = useContext(AuthContext);
+export function GoalProvider({ children }) {
+  const { user } = useContext(AuthContext);
 
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +42,7 @@ export function GoalProvider({ children }) {
   }, [user]);
 
   async function fetchGoals() {
-    if(!user){
+    if (!user) {
       setGoals([]);
       setLoading(false);
       return;
@@ -114,7 +120,7 @@ export function GoalProvider({ children }) {
 
   const activeGoals = goals.filter((g) => g.status === "active");
   const drafts = goals.filter((g) => g.status === "draft");
-const WORKER_URL = "https://launchpad-worker.maryam-ai.workers.dev";
+  const WORKER_URL = "https://launchpad-worker.maryam-ai.workers.dev";
 
   async function generateRoadmap(goal) {
     const res = await fetch(WORKER_URL, {
@@ -145,222 +151,182 @@ const WORKER_URL = "https://launchpad-worker.maryam-ai.workers.dev";
     setGoals((prev) => prev.map((g) => (g.id === goal.id ? data : g)));
     return data;
   }
-  
 
-async function generateMonthDetail(goal, monthIndex) {
-  const month = goal.roadmap.months.find((m) => m.index === monthIndex);
+  async function generateMonthDetail(goal, monthIndex) {
+    const month = goal.roadmap.months.find((m) => m.index === monthIndex);
 
-  const res = await fetch(`${WORKER_URL}/month`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ goal, month }),
-  });
+    const res = await fetch(`${WORKER_URL}/month`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goal, month }),
+    });
 
-  if (!res.ok) {
-    console.error("Month detail generation failed:", await res.text());
-    return null;
-  }
-
-  const { detail } = await res.json();
-
-  const updatedMonths = goal.roadmap.months.map((m) =>
-    m.index === monthIndex ? { ...m, detail } : m
-  );
-  const updatedRoadmap = { ...goal.roadmap, months: updatedMonths };
-
-  const { data, error } = await supabase
-    .from("goals")
-    .update({ roadmap: updatedRoadmap })
-    .eq("id", goal.id)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Failed to save month detail:", error.message);
-    return null;
-  }
-
-  setGoals((prev) => prev.map((g) => (g.id === goal.id ? data : g)));
-  return data;
-}
-
-async function generateWeekDetail(goal, monthIndex, weekIndex) {
-  const month = goal.roadmap.months.find((m) => m.index === monthIndex);
-  const week = month.detail.weeks.find((w) => w.index === weekIndex);
-
-  const res = await fetch(`${WORKER_URL}/week`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ goal, month, week }),
-  });
-
-  if (!res.ok) {
-    console.error("Week detail generation failed:", await res.text());
-    return null;
-  }
-
-  const { detail } = await res.json();
-
-  const updatedRoadmap = updateWeekInRoadmap(goal.roadmap, monthIndex, weekIndex, (w) => ({
-    ...w,
-    detail,
-  }));
-
-  return saveRoadmap(goal.id, updatedRoadmap);
-}
-
-async function toggleChecklistItem(goal, monthIndex, weekIndex, itemId) {
-  const updatedRoadmap = updateWeekInRoadmap(goal.roadmap, monthIndex, weekIndex, (w) => ({
-    ...w,
-    detail: {
-      ...w.detail,
-      checklist: w.detail.checklist.map((item) =>
-        item.id === itemId ? { ...item, done: !item.done } : item
-      ),
-    },
-  }));
-
-  return saveRoadmap(goal.id, updatedRoadmap);
-}
-
-function updateWeekInRoadmap(roadmap, monthIndex, weekIndex, updateFn) {
-  const updatedMonths = roadmap.months.map((m) => {
-    if (m.index !== monthIndex) return m;
-    const updatedWeeks = m.detail.weeks.map((w) =>
-      w.index === weekIndex ? updateFn(w) : w
-    );
-    return { ...m, detail: { ...m.detail, weeks: updatedWeeks } };
-  });
-  return { ...roadmap, months: updatedMonths };
-}
-
-async function saveRoadmap(goalId, roadmap) {
-  const { data, error } = await supabase
-    .from("goals")
-    .update({ roadmap })
-    .eq("id", goalId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error("Failed to save roadmap:", error.message);
-    return null;
-  }
-
-  setGoals((prev) => prev.map((g) => (g.id === goalId ? data : g)));
-  return data;
-}
-
-async function completeWeek(goal, monthIndex, weekIndex) {
-  const monthIdx = goal.roadmap.months.findIndex((m) => m.index === monthIndex);
-  const month = { ...goal.roadmap.months[monthIdx] };
-  const totalWeeks = month.detail.weeks.length;
-  const isLastWeek = weekIndex === totalWeeks;
-
-  const updatedWeeks = month.detail.weeks.map((w) => {
-    if (w.index === weekIndex) return { ...w, status: "completed" };
-    if (w.index === weekIndex + 1 && w.status === "locked") return { ...w, status: "current" };
-    return w;
-  });
-
-  month.detail = { ...month.detail, weeks: updatedWeeks };
-  if (isLastWeek) month.status = "completed";
-
-  const updatedMonths = goal.roadmap.months.map((m, i) => {
-    if (i === monthIdx) return month;
-    if (isLastWeek && m.index === monthIndex + 1 && m.status === "locked") {
-      return { ...m, status: "current" };
+    if (!res.ok) {
+      console.error("Month detail generation failed:", await res.text());
+      return null;
     }
-    return m;
-  });
 
-  const updatedRoadmap = { ...goal.roadmap, months: updatedMonths };
-  return saveRoadmap(goal.id, updatedRoadmap);
-}
+    const { detail } = await res.json();
 
-// Add these functions inside GoalProvider, below completeWeek.
-// Also add generateDayDetail, toggleDayTask, saveDayNotes, and completeDay
-// to the value={{ ... }} object.
+    // Ensure every month always has a 30-day list, even if the
+    // worker hasn't been updated yet to return one.
+    const detailWithDays = {
+      ...detail,
+      days:
+        Array.isArray(detail.days) && detail.days.length > 0
+          ? detail.days
+          : buildBlankDays(),
+    };
 
-async function generateDayDetail(goal, monthIndex, weekIndex, dayIndex) {
-  const month = goal.roadmap.months.find((m) => m.index === monthIndex);
-  const week = month.detail.weeks.find((w) => w.index === weekIndex);
-  const day = week.detail.days.find((d) => d.index === dayIndex);
+    const updatedMonths = goal.roadmap.months.map((m) =>
+      m.index === monthIndex ? { ...m, detail: detailWithDays } : m
+    );
+    const updatedRoadmap = { ...goal.roadmap, months: updatedMonths };
 
-  const res = await fetch(`${WORKER_URL}/day`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ goal, week, day }),
-  });
-
-  if (!res.ok) {
-    console.error("Day detail generation failed:", await res.text());
-    return null;
+    return saveRoadmap(goal.id, updatedRoadmap);
   }
 
-  const { detail } = await res.json();
+  async function saveRoadmap(goalId, roadmap) {
+    const { data, error } = await supabase
+      .from("goals")
+      .update({ roadmap })
+      .eq("id", goalId)
+      .select()
+      .single();
 
-  const updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, weekIndex, dayIndex, (d) => ({
-    ...d,
-    detail,
-  }));
+    if (error) {
+      console.error("Failed to save roadmap:", error.message);
+      return null;
+    }
 
-  return saveRoadmap(goal.id, updatedRoadmap);
-}
+    setGoals((prev) => prev.map((g) => (g.id === goalId ? data : g)));
+    return data;
+  }
 
-async function toggleDayTask(goal, monthIndex, weekIndex, dayIndex, taskId) {
-  const updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, weekIndex, dayIndex, (d) => ({
-    ...d,
-    detail: {
-      ...d.detail,
-      tasks: d.detail.tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)),
-    },
-  }));
-
-  return saveRoadmap(goal.id, updatedRoadmap);
-}
-
-async function saveDayNotes(goal, monthIndex, weekIndex, dayIndex, notes) {
-  const updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, weekIndex, dayIndex, (d) => ({
-    ...d,
-    detail: { ...d.detail, notes },
-  }));
-
-  return saveRoadmap(goal.id, updatedRoadmap);
-}
-
-async function completeDay(goal, monthIndex, weekIndex, dayIndex) {
-  const updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, weekIndex, dayIndex, (d) => ({
-    ...d,
-    status: "completed",
-    completedAt: new Date().toISOString(),
-  }));
-
-  const monthIdx = updatedRoadmap.months.findIndex((m) => m.index === monthIndex);
-  const weekIdx = updatedRoadmap.months[monthIdx].detail.weeks.findIndex((w) => w.index === weekIndex);
-  const days = updatedRoadmap.months[monthIdx].detail.weeks[weekIdx].detail.days.map((d) =>
-    d.index === dayIndex + 1 && d.status === "locked" ? { ...d, status: "current" } : d
-  );
-  updatedRoadmap.months[monthIdx].detail.weeks[weekIdx].detail.days = days;
-
-  return saveRoadmap(goal.id, updatedRoadmap);
-}
-
-// Shared helper: deep-updates one day inside months->weeks->days.
-function updateDayInRoadmap(roadmap, monthIndex, weekIndex, dayIndex, updateFn) {
-  const updatedMonths = roadmap.months.map((m) => {
-    if (m.index !== monthIndex) return m;
-    const updatedWeeks = m.detail.weeks.map((w) => {
-      if (w.index !== weekIndex) return w;
-      const updatedDays = w.detail.days.map((d) =>
+  // Deep-updates a single day inside months -> days.
+  function updateDayInRoadmap(roadmap, monthIndex, dayIndex, updateFn) {
+    const updatedMonths = roadmap.months.map((m) => {
+      if (m.index !== monthIndex) return m;
+      const updatedDays = (m.detail?.days || []).map((d) =>
         d.index === dayIndex ? updateFn(d) : d
       );
-      return { ...w, detail: { ...w.detail, days: updatedDays } };
+      return { ...m, detail: { ...m.detail, days: updatedDays } };
     });
-    return { ...m, detail: { ...m.detail, weeks: updatedWeeks } };
-  });
-  return { ...roadmap, months: updatedMonths };
-}
+    return { ...roadmap, months: updatedMonths };
+  }
+
+  async function toggleDayCompletion(goalId, monthIndex, dayIndex) {
+    const goal = goals.find((g) => String(g.id) === String(goalId));
+    if (!goal?.roadmap) return null;
+
+    const monthIdx = goal.roadmap.months.findIndex((m) => m.index === monthIndex);
+    if (monthIdx === -1) return null;
+
+    const targetDay = goal.roadmap.months[monthIdx].detail?.days?.find(
+      (d) => d.index === dayIndex
+    );
+    const nextCompleted = !targetDay?.completed;
+
+    let updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, dayIndex, (d) => ({
+      ...d,
+      completed: nextCompleted,
+      completedAt: nextCompleted ? new Date().toISOString() : null,
+    }));
+
+    // If every day in this month is now complete, mark the month
+    // completed and unlock the next one.
+    const month = updatedRoadmap.months[monthIdx];
+    const days = month.detail?.days || [];
+    const allDone = days.length > 0 && days.every((d) => d.completed);
+
+    updatedRoadmap = {
+      ...updatedRoadmap,
+      months: updatedRoadmap.months.map((m, i) => {
+        if (i === monthIdx) {
+          return { ...m, status: allDone ? "completed" : "current" };
+        }
+        if (allDone && m.index === monthIndex + 1 && m.status === "locked") {
+          return { ...m, status: "current" };
+        }
+        return m;
+      }),
+    };
+
+    return saveRoadmap(goalId, updatedRoadmap);
+  }
+
+  async function generateDayDetail(goal, monthIndex, dayIndex) {
+    const month = goal.roadmap.months.find((m) => m.index === monthIndex);
+    const day = month.detail.days.find((d) => d.index === dayIndex);
+
+    const res = await fetch(`${WORKER_URL}/day`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goal, month, day }),
+    });
+
+    if (!res.ok) {
+      console.error("Day detail generation failed:", await res.text());
+      return null;
+    }
+
+    const { detail } = await res.json();
+
+    const updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, dayIndex, (d) => ({
+      ...d,
+      detail,
+    }));
+
+    return saveRoadmap(goal.id, updatedRoadmap);
+  }
+
+  async function toggleDayTask(goal, monthIndex, dayIndex, taskId) {
+    const updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, dayIndex, (d) => ({
+      ...d,
+      detail: {
+        ...d.detail,
+        tasks: d.detail.tasks.map((t) => (t.id === taskId ? { ...t, done: !t.done } : t)),
+      },
+    }));
+
+    return saveRoadmap(goal.id, updatedRoadmap);
+  }
+
+  async function saveDayNotes(goal, monthIndex, dayIndex, notes) {
+    const updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, dayIndex, (d) => ({
+      ...d,
+      detail: { ...d.detail, notes },
+    }));
+
+    return saveRoadmap(goal.id, updatedRoadmap);
+  }
+
+  async function completeDay(goal, monthIndex, dayIndex) {
+    let updatedRoadmap = updateDayInRoadmap(goal.roadmap, monthIndex, dayIndex, (d) => ({
+      ...d,
+      completed: true,
+      completedAt: new Date().toISOString(),
+    }));
+
+    const monthIdx = updatedRoadmap.months.findIndex((m) => m.index === monthIndex);
+    const days = updatedRoadmap.months[monthIdx].detail?.days || [];
+    const allDone = days.length > 0 && days.every((d) => d.completed);
+
+    updatedRoadmap = {
+      ...updatedRoadmap,
+      months: updatedRoadmap.months.map((m, i) => {
+        if (i === monthIdx) {
+          return { ...m, status: allDone ? "completed" : "current" };
+        }
+        if (allDone && m.index === monthIndex + 1 && m.status === "locked") {
+          return { ...m, status: "current" };
+        }
+        return m;
+      }),
+    };
+
+    return saveRoadmap(goal.id, updatedRoadmap);
+  }
 
   return (
     <GoalContext.Provider
@@ -375,14 +341,11 @@ function updateDayInRoadmap(roadmap, monthIndex, weekIndex, dayIndex, updateFn) 
         deleteGoal,
         generateRoadmap,
         generateMonthDetail,
-        generateWeekDetail,
-        toggleChecklistItem,
-        completeWeek,
+        toggleDayCompletion,
         generateDayDetail,
         toggleDayTask,
         saveDayNotes,
         completeDay,
-        
       }}
     >
       {children}

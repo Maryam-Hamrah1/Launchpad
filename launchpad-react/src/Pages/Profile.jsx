@@ -25,13 +25,9 @@ function collectCompletedDays(goals) {
     for (const month of goal.roadmap.months) {
       if (!month.detail) continue;
 
-      for (const week of month.detail.weeks) {
-        if (!week.detail) continue;
-
-        for (const day of week.detail.days) {
-          if (day.status === "completed" && day.completedAt) {
-            days.push(day);
-          }
+      for (const day of month.detail.days || []) {
+        if (day.completed && day.completedAt) {
+          days.push(day);
         }
       }
     }
@@ -61,9 +57,9 @@ function computeBadges(goals, streak) {
 
   const goalCreated = goals.length > 0;
 
-  const weekCompleted = goals.some((g) =>
+  const dayCompleted = goals.some((g) =>
     g.roadmap?.months.some((m) =>
-      m.detail?.weeks.some((w) => w.status === "completed")
+      (m.detail?.days || []).some((d) => d.completed)
     )
   );
 
@@ -84,11 +80,11 @@ function computeBadges(goals, streak) {
     });
 
 
-  if (weekCompleted)
+  if (dayCompleted)
     badges.push({
       icon: "✅",
-      title: "First Week",
-      desc: "Completed a milestone",
+      title: "First Day",
+      desc: "Completed a daily mission",
     });
 
 

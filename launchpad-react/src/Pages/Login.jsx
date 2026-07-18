@@ -2,29 +2,54 @@ import { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../components/AuthContext";
 
-export default function Login() {
+const cardStyle = {
+  background: "var(--color-bg-elev)",
+  border: "1px solid var(--color-line)",
+  boxShadow: "var(--shadow-card)",
+};
+const dimStyle = { color: "var(--color-ink-dim)" };
+const headingFont = { fontFamily: "'Space Grotesk', sans-serif" };
+const fieldClass =
+  "w-full rounded-2xl px-5 py-4 text-sm placeholder-[color:var(--color-ink-dim)] transition-all focus:outline-none";
 
+function fieldStyle() {
+  return {
+    background: "var(--color-bg)",
+    color: "var(--color-ink)",
+    border: "1px solid var(--color-line)",
+  };
+}
+
+function Logo({ className = "" }) {
+  return (
+    <svg className={className} viewBox="0 0 30 30" fill="none">
+      <circle cx="15" cy="15" r="12.5" stroke="var(--color-primary)" strokeWidth="1.3" />
+      <path d="M15 7 L15 23 M7 15 L23 15" stroke="var(--color-line-strong)" strokeWidth="1" />
+      <circle cx="15" cy="15" r="2.6" fill="var(--color-primary)" />
+    </svg>
+  );
+}
+
+export default function Login() {
   const { signIn } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [email,setEmail] = useState("");
-  const [password,setPassword] = useState("");
-  const [error,setError] = useState("");
-  const [submitting,setSubmitting] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-
-  async function handleSubmit(e){
-
+  async function handleSubmit(e) {
     e.preventDefault();
 
     setError("");
     setSubmitting(true);
 
-    const {error:signInError}=await signIn(email,password);
+    const { error: signInError } = await signIn(email, password);
 
     setSubmitting(false);
 
-    if(signInError){
+    if (signInError) {
       setError(signInError);
       return;
     }
@@ -32,224 +57,109 @@ export default function Login() {
     navigate("/dashboard");
   }
 
-
-
   return (
-
     <div
-      className="min-h-screen flex items-center justify-center px-5 relative overflow-hidden"
-      style={{
-        background:`
-        radial-gradient(circle at 20% 20%, rgba(255,138,61,.18), transparent 35%),
-        radial-gradient(circle at 80% 75%, rgba(110,168,254,.15), transparent 35%),
-        var(--color-bg)`
-        
-      }}
+      className="min-h-screen flex items-center justify-center px-5 py-10 relative overflow-hidden"
+      style={{ background: "var(--color-bg)", color: "var(--color-ink)" }}
     >
-
-
-      {/* Background Glow */}
-
-      <div className="absolute w-72 h-72 rounded-full blur-3xl opacity-30 bg-primary/30 top-16 left-10"></div>
-
-      <div className="absolute w-80 h-80 rounded-full blur-3xl opacity-20 bg-accent/30 bottom-10 right-10"></div>
-
-
-
-
+      {/* ambient glow */}
+      <div
+        className="absolute w-96 h-96 rounded-full blur-3xl -top-40 -left-40 pointer-events-none"
+        style={{ background: "color-mix(in srgb, var(--color-primary) 12%, transparent)" }}
+      />
+      <div
+        className="absolute w-96 h-96 rounded-full blur-3xl -bottom-40 -right-40 pointer-events-none"
+        style={{ background: "color-mix(in srgb, var(--color-accent) 10%, transparent)" }}
+      />
 
       <div className="w-full max-w-sm relative z-10">
-
-
-
-        {/* Header */}
-
-
-        <div className="text-center mb-10">
-
-          <h1
-            className="text-4xl font-bold tracking-tight mb-3"
-            style={{
-              color:"var(--color-ink)",
-              fontFamily:"'Space Grotesk',sans-serif"
-            }}
-          >
-            Welcome back
-          </h1>
-
-
-          <p
-            className="text-sm"
-            style={{
-              color:"var(--color-ink-dim)"
-            }}
-          >
-            Log in to continue your Launchpad journey.
-          </p>
-
-
+        {/* Logo */}
+        <div
+          className="flex justify-center items-center gap-2.5 font-bold text-[25px] px-2 mb-7"
+          style={{ ...headingFont, color: "var(--color-ink)" }}
+        >
+          <Logo className="w-10 h-10" />
+          Launchpad
         </div>
 
+        <div style={{ borderBottom: "1px solid var(--color-line)" }} />
 
-
-
-
+        {/* Header */}
+        <div className="text-center mt-10 mb-8">
+          <h1 className="text-3xl font-bold tracking-tight mb-3" style={headingFont}>
+            Welcome back
+          </h1>
+          <p className="text-sm" style={dimStyle}>
+            Log in to continue your Launchpad journey.
+          </p>
+        </div>
 
         {/* Card */}
-
-
-
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl p-6 space-y-5 border backdrop-blur-xl"
-          style={{
-            backgroundColor:"color-mix(in srgb, var(--color-bg-elev) 85%, transparent)",
-            borderColor:"var(--color-line)",
-            boxShadow:"var(--shadow-card)"
-          }}
-        >
-
-
-
-
-
+        <form onSubmit={handleSubmit} className="rounded-3xl p-7 space-y-5" style={cardStyle}>
           {error && (
-
             <div
-              className="rounded-xl px-4 py-3 text-sm"
+              className="rounded-2xl px-4 py-3 text-sm"
               style={{
-                color:"var(--color-danger)",
-                background:"rgba(255,107,107,.1)",
-                border:"1px solid rgba(255,107,107,.25)"
+                color: "var(--color-danger)",
+                background: "color-mix(in srgb, var(--color-danger) 10%, transparent)",
+                border: "1px solid var(--color-danger)",
               }}
             >
               {error}
             </div>
-
           )}
 
-
-
-
-
-
-
           <div>
-
-            <label className="block text-xs font-mono mb-2" style={{color:"var(--color-ink-dim)"}}>
+            <label className="block text-xs font-mono mb-2" style={dimStyle}>
               Email
             </label>
-
-
             <input
               type="email"
               value={email}
-              onChange={(e)=>setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="w-full rounded-xl px-4 py-3 text-sm outline-none border transition focus:ring-2"
-              style={{
-                backgroundColor:"var(--color-bg-elev2)",
-                color:"var(--color-ink)",
-                borderColor:"var(--color-line)"
-              }}
+              className={fieldClass}
+              style={fieldStyle()}
             />
-
-
           </div>
 
-
-
-
-
-
-
-
           <div>
-
-
-            <label className="block text-xs font-mono mb-2" style={{color:"var(--color-ink-dim)"}}>
+            <label className="block text-xs font-mono mb-2" style={dimStyle}>
               Password
             </label>
-
-
-
             <input
               type="password"
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="w-full rounded-xl px-4 py-3 text-sm outline-none border transition focus:ring-2"
-              style={{
-                backgroundColor:"var(--color-bg-elev2)",
-                color:"var(--color-ink)",
-                borderColor:"var(--color-line)"
-              }}
+              className={fieldClass}
+              style={fieldStyle()}
             />
-
-
           </div>
-
-
-
-
-
-
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-full py-3.5 text-sm font-semibold transition hover:scale-[1.02] hover:brightness-110 disabled:opacity-50"
+            className="w-full rounded-full py-3.5 text-sm font-semibold transition hover:brightness-110 disabled:opacity-50"
             style={{
-              background:"linear-gradient(135deg,var(--color-primary),var(--color-primary-light))",
-              color:"#1A1305",
-              boxShadow:"0 8px 25px rgba(255,138,61,.25)"
+              background: "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
+              color: "#111",
+              boxShadow: "var(--shadow-card)",
             }}
           >
             {submitting ? "Logging in..." : "Log In"}
           </button>
-
-
-
-
         </form>
 
-
-
-
-
-
-        <p
-          className="text-center text-sm mt-7"
-          style={{
-            color:"var(--color-ink-dim)"
-          }}
-        >
-
+        <p className="text-center text-sm mt-7" style={dimStyle}>
           Don't have an account?{" "}
-
-
-          <Link
-            to="/signup"
-            className="font-semibold hover:underline"
-            style={{
-              color:"var(--color-primary)"
-            }}
-          >
+          <Link to="/signup" className="font-semibold hover:underline" style={{ color: "var(--color-primary)" }}>
             Sign up
           </Link>
-
-
         </p>
-
-
-
-
       </div>
-
-
     </div>
-
   );
 }

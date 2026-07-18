@@ -20,13 +20,9 @@ function collectCompletedDays(goals) {
     for (const month of goal.roadmap.months) {
       if (!month.detail) continue;
 
-      for (const week of month.detail.weeks) {
-        if (!week.detail) continue;
-
-        for (const day of week.detail.days) {
-          if (day.status === "completed" && day.completedAt) {
-            days.push(day);
-          }
+      for (const day of month.detail.days || []) {
+        if (day.completed && day.completedAt) {
+          days.push(day);
         }
       }
     }
@@ -307,12 +303,12 @@ for(const month of goal.roadmap.months){
 if(!month.detail) continue;
 
 
-for(const week of month.detail.weeks){
+for(const day of month.detail.days || []){
 
-if(!week.detail) continue;
+if(!day.detail) continue;
 
 
-tasks += week.detail.checklist.filter(
+tasks += (day.detail.tasks || []).filter(
 t=>t.done
 ).length;
 
