@@ -74,13 +74,15 @@ export default function Login() {
 
       <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
+        <Link to={'/'}>
         <div
           className="flex justify-center items-center gap-2.5 font-bold text-[25px] px-2 mb-7"
           style={{ ...headingFont, color: "var(--color-ink)" }}
-        >
+          >
           <Logo className="w-10 h-10" />
           Launchpad
         </div>
+        </Link>
 
         <div style={{ borderBottom: "1px solid var(--color-line)" }} />
 

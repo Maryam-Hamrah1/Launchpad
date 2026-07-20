@@ -534,4 +534,3 @@ function InfoBox({ title, value }) {
   );
 }
 
-

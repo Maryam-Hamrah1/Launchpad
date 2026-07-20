@@ -1,4 +1,4 @@
-import { NavLink, useParams, Link } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 
 function NavIcon({ type }) {
   if (type === "circle:8|3") {
@@ -180,13 +180,12 @@ export default function Sidebar({ expanded, onToggleExpanded, mobileOpen, onClos
           }`}
         >
           {/* Logo */}
-          <Link to={'/'}>
           <div
             className={`flex items-center gap-2.5 font-bold text-[15px] mb-7 whitespace-nowrap ${
               showLabels ? "px-2" : "justify-center"
             }`}
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
+          >
             <svg className="w-6 h-6 flex-shrink-0" viewBox="0 0 30 30" fill="none">
               <circle cx="15" cy="15" r="12.5" stroke="var(--color-primary)" strokeWidth="1.3" />
               <path d="M15 7 L15 23 M7 15 L23 15" stroke="var(--color-line-strong)" strokeWidth="1" />
@@ -194,7 +193,6 @@ export default function Sidebar({ expanded, onToggleExpanded, mobileOpen, onClos
             </svg>
             {showLabels && "Launchpad"}
           </div>
-          </Link>
 
           {/* Main navigation */}
           <nav className="flex flex-col gap-0.5">{MAIN_ITEMS.map(NavItem)}</nav>

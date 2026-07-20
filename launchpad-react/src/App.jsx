@@ -17,7 +17,7 @@ import Profile from './Pages/Profile'
 import Planner from './Pages/Planner'
 import Settings from './Pages/Settings'
 import Layout from './components/Layout'
-
+import GoalLayout from './components/GoalLayout'
 
 function App() {
 
@@ -29,9 +29,12 @@ function App() {
       <Route path='/signUp' element={<SignUp/>}/>
 
       <Route path='/create-goal' element={<CreateGoal/>}/>
-    <Route path='/goals/:goalId' element={<GoalDetails/>}/>
+      <Route element={<GoalLayout/>}>
+<Route path='/goals/:goalId' element={<GoalDetails/>}/>
     <Route path='/goals/:goalId/month/:monthIndex' element={<MonthDetails/>}/>
     <Route path='/goals/:goalId/month/:monthIndex/day/:dayIndex' element={<DailyPlanner/>}/>
+      </Route>
+    
 
     <Route element={<Layout/>}>
      <Route path='/dashboard' element={

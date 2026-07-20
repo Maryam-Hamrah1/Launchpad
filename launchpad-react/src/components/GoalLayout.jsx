@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "./Sidebar";
-import Topbar from "./Topbar";
+import GoalSidebar from "./GoalSidebar";
+import GoalTopbar from "./GoalTopbar";
 
-export default function Layout() {
+export default function GoalLayout() {
   const [expanded, setExpanded] = useState(true); // desktop rail: wide by default
   const [mobileOpen, setMobileOpen] = useState(false); // mobile overlay: closed by default
 
@@ -12,7 +12,7 @@ export default function Layout() {
       className="h-screen overflow-hidden flex"
       style={{ background: "var(--color-bg)", color: "var(--color-ink)" }}
     >
-      <Sidebar
+      <GoalSidebar
         expanded={expanded}
         onToggleExpanded={() => setExpanded((v) => !v)}
         mobileOpen={mobileOpen}
@@ -25,7 +25,7 @@ export default function Layout() {
           expanded ? "md:ml-56" : "md:ml-16"
         }`}
       >
-        <Topbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((v) => !v)} />
+        <GoalTopbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((v) => !v)} />
 
         {/* Only this scrolls */}
         <main className="flex-1 overflow-y-auto px-8 py-8">

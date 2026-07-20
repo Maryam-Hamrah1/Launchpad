@@ -1,14 +1,6 @@
 import { NavLink, useParams, Link } from "react-router-dom";
 
 function NavIcon({ type }) {
-  if (type === "circle:8|3") {
-    return (
-      <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="12" cy="12" r="8" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    );
-  }
   if (type === "coach") {
     return (
       <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -66,12 +58,11 @@ function NavIcon({ type }) {
   );
 }
 
-export default function Sidebar({ expanded, onToggleExpanded, mobileOpen, onCloseMobile }) {
+export default function GoalSidebar({ expanded, onToggleExpanded, mobileOpen, onCloseMobile }) {
   const { goalId, monthIndex, dayIndex } = useParams();
 
   const MAIN_ITEMS = [
     { to: "/dashboard", label: "Dashboard", icon: "M4 12 L12 4 L20 12 M6 10 V20 H18 V10" },
-    { to: "/goals", label: "Goals", icon: "circle:8|3" },
 
     // Breadcrumb-style entries for wherever you currently are in a goal's journey
     ...(goalId ? [{ to: `/goals/${goalId}`, label: "Roadmap", icon: "target" }] : []),
@@ -180,7 +171,7 @@ export default function Sidebar({ expanded, onToggleExpanded, mobileOpen, onClos
           }`}
         >
           {/* Logo */}
-          <Link to={'/'}>
+          <Link to={"/"}>
           <div
             className={`flex items-center gap-2.5 font-bold text-[15px] mb-7 whitespace-nowrap ${
               showLabels ? "px-2" : "justify-center"
@@ -194,7 +185,7 @@ export default function Sidebar({ expanded, onToggleExpanded, mobileOpen, onClos
             </svg>
             {showLabels && "Launchpad"}
           </div>
-          </Link>
+            </Link>
 
           {/* Main navigation */}
           <nav className="flex flex-col gap-0.5">{MAIN_ITEMS.map(NavItem)}</nav>
@@ -214,3 +205,4 @@ export default function Sidebar({ expanded, onToggleExpanded, mobileOpen, onClos
     </>
   );
 }
+

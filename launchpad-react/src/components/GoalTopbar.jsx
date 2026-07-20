@@ -10,59 +10,36 @@ function HamburgerIcon({ isOpen }) {
   );
 }
 
-export default function Topbar({ mobileOpen, onToggleMobile }) {
+export default function GoalTopbar({ mobileOpen, onToggleMobile }) {
   const { isLight, toggleTheme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext);
 
   const fullName = user?.user_metadata?.full_name || "Maryam";
 
   return (
-    <header
-      className="sticky top-0 z-30 px-8 py-5 w-full backdrop-blur-md"
-      style={{ background: "color-mix(in srgb, var(--color-bg) 80%, transparent)" }}
-    >
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1">
-          {/* Mobile menu toggle — hidden on desktop, the sidebar has its own arrow there */}
-          <button
-            onClick={onToggleMobile}
-            aria-label="Toggle menu"
-            className="md:hidden flex-shrink-0 w-10 h-10 rounded-xl transition-all flex items-center justify-center"
-            style={{
-              background: "var(--color-bg-elev)",
-              border: "1px solid var(--color-line)",
-              boxShadow: "var(--shadow-card)",
-              color: "var(--color-ink)",
-            }}
-          >
-            <HamburgerIcon isOpen={mobileOpen} />
-          </button>
+    <header className="sticky top-0 z-30 px-8 py-5 w-full backdrop-blur-md"
+  style={{ background: "color-mix(in srgb, var(--color-bg) 80%, transparent)" }}>
+      <div className="flex items-center justify-between">
+        {/* Mobile menu toggle — hidden on desktop, the sidebar has its own arrow there */}
+        <button
+          onClick={onToggleMobile}
+          aria-label="Toggle menu"
+          className="md:hidden w-10 h-10 rounded-xl transition-all flex items-center justify-center"
+          style={{
+            background: "var(--color-bg-elev)",
+            border: "1px solid var(--color-line)",
+            boxShadow: "var(--shadow-card)",
+            color: "var(--color-ink)",
+          }}
+        >
+          <HamburgerIcon isOpen={mobileOpen} />
+        </button>
 
-          {/* Search */}
-          <div
-            className="flex items-center gap-2 rounded-xl px-4 h-11 flex-1 max-w-2xl"
-            style={{
-              background: "var(--color-bg-elev)",
-              border: "1px solid var(--color-line)",
-              boxShadow: "var(--shadow-card)",
-            }}
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="var(--color-ink-dim)" strokeWidth="2">
-              <circle cx="11" cy="11" r="7" />
-              <path d="M20 20L17 17" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search goals, roadmap, planner..."
-              className="flex-1 bg-transparent outline-none text-xs"
-              style={{ color: "var(--color-ink)" }}
-            />
-          </div>
-        </div>
+        {/* spacer so the right-side cluster stays right-aligned on desktop */}
+        <div className="hidden md:block flex-1" />
 
         {/* Right */}
         <div className="flex items-center gap-3">
-          {/* Theme */}
           <button
             onClick={toggleTheme}
             className="w-10 h-10 rounded-xl transition-all text-sm"
@@ -75,7 +52,6 @@ export default function Topbar({ mobileOpen, onToggleMobile }) {
             {isLight ? "🌙" : "☀️"}
           </button>
 
-          {/* Notification */}
           <button
             className="relative w-10 h-10 rounded-xl text-sm"
             style={{
@@ -91,7 +67,6 @@ export default function Topbar({ mobileOpen, onToggleMobile }) {
             />
           </button>
 
-          {/* Profile */}
           <div
             className="flex items-center gap-2 rounded-xl px-2.5 py-1.5"
             style={{

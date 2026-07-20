@@ -1,15 +1,3 @@
-// embedResources.mjs
-// One-off local script — run with: node embedResources.mjs
-// Reads resourcesData.js, generates an embedding for each resource via
-// OpenRouter, and inserts everything into the Supabase "resources" table.
-//
-// Reuses your existing .env file (just add SUPABASE_SERVICE_ROLE_KEY and
-// OPENROUTER_API_KEY to it — no VITE_ prefix, so the browser never sees them).
-// This uses the service_role key because it's run locally on your machine,
-// never shipped to the browser. Do NOT import this file into the React app.
-//
-// If you ever switch embedding providers, getEmbedding() below is the only
-// function you need to change — everything else stays the same.
 
 import "dotenv/config";
 import { createClient } from "@supabase/supabase-js";

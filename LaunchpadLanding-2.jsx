@@ -1,7 +1,6 @@
 import { useContext, useState, useEffect, useRef } from "react";
-import { href, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ThemeContext } from "../components/ThemeContext";
-
 
 const FEATURES = [
   { icon: "🎯", title: "Goal Creation", desc: "Set a goal in plain language — Launchpad structures it into a full plan." },
@@ -51,7 +50,7 @@ const FAQS = [
   { q: "Is Launchpad free?", a: "Launchpad offers a free tier to get started, with additional features on paid plans." },
 ];
 
-
+const TECH_STACK = ["React", "Supabase", "Cloudflare", "OpenRouter", "Tailwind CSS"];
 
 function Logo({ className = "" }) {
   return (
@@ -165,9 +164,7 @@ function DashboardMockup() {
             >
               🔍 Search goals, roadmap, planner...
             </div>
-            <div className="w-7 flex items-center justify-center  text-[12px] h-7 rounded-lg flex-shrink-0" style={{ background: "var(--color-bg)", border: "1px solid var(--color-line)" }} >
-              🔔
-            </div>
+            <div className="w-7 h-7 rounded-lg flex-shrink-0" style={{ background: "var(--color-bg)", border: "1px solid var(--color-line)" }} />
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center text-[9.5px] font-bold flex-shrink-0"
               style={{ background: "linear-gradient(135deg,var(--color-primary),var(--color-accent))", color: "#111" }}
@@ -279,13 +276,10 @@ export default function LaunchpadLanding() {
         style={{ background: "color-mix(in srgb, var(--color-bg) 82%, transparent)", borderBottom: "1px solid var(--color-line)" }}
       >
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 md:px-8 py-4">
-          <Link to={'/'}>
           <div className="flex items-center gap-2.5 display font-bold text-lg">
             <Logo className="w-7 h-7" />
             Launchpad
           </div>
-          </Link>
-          
           <nav className="hidden md:flex gap-8 text-sm" style={{ color: "var(--color-ink-dim)" }}>
             <a href="#hero">Home</a>
             <a href="#features">Features</a>
@@ -364,21 +358,23 @@ export default function LaunchpadLanding() {
         </div>
       </section>
 
-      {/* TRUSTED BY */}
-<section className="py-6" style={{ borderTop: "1px solid var(--color-line)", borderBottom: "1px solid var(--color-line)" }}>
-  <div className="max-w-6xl mx-auto px-6 md:px-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-    <span className="mono text-xs" style={{ color: "var(--color-ink-dim)" }}>
-      TRUSTED BY PEOPLE BUILDING THEIR NEXT CHAPTER
-    </span>
-    <div className="flex flex-wrap gap-5">
-      {["Students", "Developers", "Designers", "Freelancers", "Career Changers"].map((t) => (
-        <span key={t} className="display font-semibold text-sm opacity-80" style={{ color: "var(--color-ink-dim)" }}>
-          {t}
-        </span>
-      ))}
-    </div>
-  </div>
-</section>
+      {/* BUILT WITH */}
+      <section className="py-6" style={{ borderTop: "1px solid var(--color-line)", borderBottom: "1px solid var(--color-line)" }}>
+        <div className="max-w-6xl mx-auto px-6 md:px-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <span className="mono text-xs" style={{ color: "var(--color-ink-dim)" }}>BUILT WITH</span>
+          <div className="flex flex-wrap gap-3">
+            {TECH_STACK.map((t) => (
+              <span
+                key={t}
+                className="display font-semibold text-xs rounded-full px-3.5 py-1.5"
+                style={{ border: "1px solid var(--color-line)", color: "var(--color-ink-dim)" }}
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* PROBLEM */}
       <section className="py-16">
@@ -745,10 +741,10 @@ export default function LaunchpadLanding() {
             <Reveal>
               <Card className="p-7 h-full flex flex-col gap-5 justify-center">
                 {[
-                  ["✉️", "Email", "mhamrah112@gmail.com"],
-                  ["🐙", "GitHub", "https://github.com/Maryam-Hamrah1"],
-                  ["💼", "LinkedIn", "https://www.linkedin.com/in/maryam-hamrah-5187442ab"],
-                  ["📍", "Location", "Afghanistan"],
+                  ["✉️", "Email", "hello@launchpad.app"],
+                  ["🐙", "GitHub", "github.com/launchpad"],
+                  ["💼", "LinkedIn", "linkedin.com/company/launchpad"],
+                  ["📍", "Location", "Remote-first"],
                 ].map(([icon, label, value]) => (
                   <div key={label} className="flex items-center gap-3.5">
                     <div
@@ -797,12 +793,9 @@ export default function LaunchpadLanding() {
         <div className="max-w-6xl mx-auto px-6 md:px-8 pt-11 pb-6">
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-9">
             <div>
-              <Link to={'/'}>
               <div className="flex items-center gap-2.5 display font-bold text-base mb-3">
                 <Logo className="w-7 h-7" /> Launchpad
               </div>
-              </Link>
-              
               <p className="text-xs max-w-[220px]" style={{ color: "var(--color-ink-dim)" }}>
                 Turning dreams into roadmaps, one milestone at a time.
               </p>
@@ -821,15 +814,8 @@ export default function LaunchpadLanding() {
             </div>
             <div>
               <h4 className="text-xs uppercase tracking-wider mb-4" style={{ color: "var(--color-ink-dim)" }}>Connect</h4>
-              
-              {[
-              {label: "Email" , href:"mhamrah112@gmail.com"}, 
-              {label:"GitHub", href:"https://github.com/Maryam-Hamrah1"}, 
-              {label:"LinkedIn", href:"https://www.linkedin.com/in/maryam-hamrah-5187442ab"}
-
-
-              ].map((item) => (
-                <a key={item.label} href={item.href} className="block text-sm mb-2.5" style={{ color: "var(--color-ink-dim)" }}>{item.label}</a>
+              {["Email", "GitHub", "LinkedIn"].map((l) => (
+                <a key={l} href="#contact" className="block text-sm mb-2.5" style={{ color: "var(--color-ink-dim)" }}>{l}</a>
               ))}
             </div>
           </div>
@@ -845,4 +831,3 @@ export default function LaunchpadLanding() {
     </div>
   );
 }
-
