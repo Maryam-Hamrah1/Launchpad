@@ -1,7 +1,7 @@
 const CORS_HEADERS = {
  'Access-Control-Allow-Origin': '*',
  'Access-Control-Allow-Methods': 'POST, OPTIONS',
- 'Access-Control-Allow-Headers': 'Content-Type',
+ 'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 export default {
@@ -29,6 +29,9 @@ export default {
    if (url.pathname === '/progress') {
     return await handleProgressRequest(request, env);
    }
+   if (url.pathname === '/delete-account') {
+    return await handleDeleteAccountRequest(request, env);
+   }
    
    // default route ("/") = full roadmap skeleton
    return await handleRoadmapRequest(request, env);
@@ -40,6 +43,63 @@ export default {
   }
  },
 };
+
+// Deletes the currently authenticated user's account.
+// SECURITY: never trust a user id sent from the client — the access
+// token in the Authorization header is verified against Supabase first,
+// and only the id Supabase returns for that token is deleted.
+// Requires env.SUPABASE_SERVICE_ROLE_KEY (a secret, NOT the anon key)
+// set via `wrangler secret put SUPABASE_SERVICE_ROLE_KEY`.
+async function handleDeleteAccountRequest(request, env) {
+ const authHeader = request.headers.get('Authorization') || '';
+ const accessToken = authHeader.replace(/^Bearer\s+/i, '');
+
+ if (!accessToken) {
+  return new Response(JSON.stringify({ error: 'Missing access token' }), {
+   status: 401,
+   headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+ }
+
+ // 1. Verify the token and find out which user it actually belongs to.
+ const whoRes = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+  headers: {
+   apikey: env.SUPABASE_ANON_KEY,
+   Authorization: `Bearer ${accessToken}`,
+  },
+ });
+
+ if (!whoRes.ok) {
+  return new Response(JSON.stringify({ error: 'Invalid or expired session' }), {
+   status: 401,
+   headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+ }
+
+ const who = await whoRes.json();
+ const userId = who.id;
+
+ // 2. Delete that exact user using the service role key (admin-only endpoint).
+ const deleteRes = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
+  method: 'DELETE',
+  headers: {
+   apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+   Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+  },
+ });
+
+ if (!deleteRes.ok) {
+  const text = await deleteRes.text();
+  return new Response(JSON.stringify({ error: `Account deletion failed: ${text}` }), {
+   status: 500,
+   headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+ }
+
+ return new Response(JSON.stringify({ success: true }), {
+  headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+ });
+}
 
 async function handleRoadmapRequest(request, env) {
  const goal = await request.json();

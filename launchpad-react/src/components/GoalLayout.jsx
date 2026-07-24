@@ -28,10 +28,11 @@ export default function GoalLayout() {
         <GoalTopbar mobileOpen={mobileOpen} onToggleMobile={() => setMobileOpen((v) => !v)} />
 
         {/* Only this scrolls */}
-        <main className="flex-1 overflow-y-auto px-8 py-8">
+        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 sm:py-8">
           <Outlet />
         </main>
       </div>
     </div>
   );
 }
+

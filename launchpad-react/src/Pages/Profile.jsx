@@ -1,7 +1,9 @@
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../components/AuthContext";
 import { GoalContext } from "../components/GoalContext";
+import { supabase } from "../supabaseClient";
+import { Target, CheckCircle2, CalendarDays, Flame, Trophy, Pencil, X, Check } from "lucide-react";
 
 function getEffectiveStatus(goal) {
   if (goal.status === "draft") return "draft";
@@ -74,7 +76,7 @@ function computeBadges(goals, streak) {
 
   if (goalCreated)
     badges.push({
-      icon: "🎯",
+      icon: Target,
       title: "First Goal",
       desc: "Created your first goal",
     });
@@ -82,7 +84,7 @@ function computeBadges(goals, streak) {
 
   if (dayCompleted)
     badges.push({
-      icon: "✅",
+      icon: CheckCircle2,
       title: "First Day",
       desc: "Completed a daily mission",
     });
@@ -90,7 +92,7 @@ function computeBadges(goals, streak) {
 
   if (monthCompleted)
     badges.push({
-      icon: "🗓",
+      icon: CalendarDays,
       title: "First Month",
       desc: "Finished a month",
     });
@@ -98,7 +100,7 @@ function computeBadges(goals, streak) {
 
   if (streak >= 7)
     badges.push({
-      icon: "🔥",
+      icon: Flame,
       title: "7 Day Streak",
       desc: "Stayed consistent",
     });
@@ -106,7 +108,7 @@ function computeBadges(goals, streak) {
 
   if (goalCompleted)
     badges.push({
-      icon: "🏆",
+      icon: Trophy,
       title: "Goal Achieved",
       desc: "Completed a goal",
     });
@@ -135,9 +137,33 @@ function Card({ children, className = "" }) {
 
 export default function Profile() {
 
-  const { user, signOut } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const { goals, loading } = useContext(GoalContext);
   const navigate = useNavigate();
+
+  const [editing, setEditing] = useState(false);
+  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || "");
+  const [bio, setBio] = useState(user?.user_metadata?.bio || "");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  async function saveProfile(e) {
+    e.preventDefault();
+    setSaving(true);
+    setSaved(false);
+
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: fullName, bio },
+    });
+
+    setSaving(false);
+
+    if (!error) {
+      setSaved(true);
+      setEditing(false);
+      setTimeout(() => setSaved(false), 2000);
+    }
+  }
 
 
   const stats = useMemo(() => {
@@ -180,12 +206,10 @@ export default function Profile() {
 
 
 
-  const fullName =
-    user?.user_metadata?.full_name || "User";
-
+  const displayName = fullName || user?.user_metadata?.full_name || "User";
 
   const initial =
-    fullName.charAt(0).toUpperCase();
+    displayName.charAt(0).toUpperCase();
 
 
 
@@ -203,75 +227,189 @@ export default function Profile() {
 
       <Card className="mb-8">
 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {!editing ? (
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
 
 
-          <div className="flex items-center gap-5">
-            <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold"
+            <div className="flex items-center gap-5">
+              <div
+                className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold flex-shrink-0"
+                style={{
+                  background:
+                  "linear-gradient(135deg,var(--color-primary),var(--color-primary-light))",
+                  color:"#111"
+                }}
+              >
+                {initial}
+              </div>
+
+
+
+              <div>
+
+                <h1
+                  className="text-2xl font-bold"
+                  style={{
+                    fontFamily:"'Space Grotesk',sans-serif"
+                  }}
+                >
+                  {displayName}
+                </h1>
+
+
+                <p
+                  className="text-sm mt-1"
+                  style={{
+                    color:"var(--color-ink-dim)"
+                  }}
+                >
+                  {user?.email}
+                </p>
+
+
+                <p
+                  className="text-sm mt-3 max-w-md leading-6"
+                  style={{
+                    color:"var(--color-ink-dim)"
+                  }}
+                >
+                  {bio || "Building my future through learning, consistency and AI powered goals."}
+                </p>
+
+
+              </div>
+
+
+            </div>
+
+
+
+            <button
+              onClick={() => setEditing(true)}
+              className="rounded-xl px-5 py-3 font-semibold text-sm inline-flex items-center justify-center gap-2 flex-shrink-0"
               style={{
-                background:
-                "linear-gradient(135deg,var(--color-primary),var(--color-primary-light))",
+                background:"var(--color-primary)",
                 color:"#111"
               }}
             >
-              {initial}
-            </div>
-
-
-
-            <div>
-
-              <h1
-                className="text-2xl font-bold"
-                style={{
-                  fontFamily:"'Space Grotesk',sans-serif"
-                }}
-              >
-                {fullName}
-              </h1>
-
-
-              <p
-                className="text-sm mt-1"
-                style={{
-                  color:"var(--color-ink-dim)"
-                }}
-              >
-                {user?.email}
-              </p>
-
-
-              <p
-                className="text-sm mt-3 max-w-md leading-6"
-                style={{
-                  color:"var(--color-ink-dim)"
-                }}
-              >
-                Building my future through learning, consistency and AI powered goals.
-              </p>
-
-
-            </div>
+              <Pencil size={15} /> Edit Profile
+            </button>
 
 
           </div>
 
+        ) : (
 
+          <form onSubmit={saveProfile} className="space-y-5">
 
-          <button
-            className="rounded-xl px-5 py-3 font-semibold text-sm"
-            style={{
-              background:"var(--color-primary)",
-              color:"#111"
-            }}
-          >
-            Edit Profile
-          </button>
+            <div className="flex items-center gap-5 mb-2">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold flex-shrink-0"
+                style={{
+                  background:
+                  "linear-gradient(135deg,var(--color-primary),var(--color-primary-light))",
+                  color:"#111"
+                }}
+              >
+                {initial}
+              </div>
+              <h2
+                className="text-lg font-semibold"
+                style={{ fontFamily: "'Space Grotesk',sans-serif" }}
+              >
+                Edit Your Profile
+              </h2>
+            </div>
 
+            <div>
+              <label
+                className="text-xs block mb-2"
+                style={{ color:"var(--color-ink-dim)" }}
+              >
+                Full Name
+              </label>
+              <input
+                value={fullName}
+                onChange={(e)=>setFullName(e.target.value)}
+                className="w-full rounded-xl px-4 py-3 outline-none text-sm"
+                style={{
+                  background:"var(--color-bg)",
+                  border:"1px solid var(--color-line)",
+                  color:"var(--color-ink)"
+                }}
+              />
+            </div>
 
-        </div>
+            <div>
+              <label
+                className="text-xs block mb-2"
+                style={{ color:"var(--color-ink-dim)" }}
+              >
+                Email
+              </label>
+              <div
+                className="rounded-xl px-4 py-3 text-sm"
+                style={{
+                  background:"var(--color-bg)",
+                  border:"1px solid var(--color-line)",
+                  color:"var(--color-ink-dim)"
+                }}
+              >
+                {user?.email}
+              </div>
+            </div>
 
+            <div>
+              <label
+                className="text-xs block mb-2"
+                style={{ color:"var(--color-ink-dim)" }}
+              >
+                Bio
+              </label>
+              <textarea
+                rows="3"
+                value={bio}
+                onChange={(e)=>setBio(e.target.value)}
+                placeholder="Tell something about yourself..."
+                className="w-full rounded-xl px-4 py-3 outline-none text-sm resize-none"
+                style={{
+                  background:"var(--color-bg)",
+                  border:"1px solid var(--color-line)",
+                  color:"var(--color-ink)"
+                }}
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-xl px-6 py-3 font-semibold text-sm inline-flex items-center gap-2"
+                style={{
+                  background:"var(--color-primary)",
+                  color:"#111"
+                }}
+              >
+                {saving ? "Saving..." : saved ? <><Check size={15}/> Saved</> : "Save Changes"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="rounded-xl px-6 py-3 font-semibold text-sm inline-flex items-center gap-2"
+                style={{
+                  border:"1px solid var(--color-line)",
+                  color:"var(--color-ink-dim)"
+                }}
+              >
+                <X size={15}/> Cancel
+              </button>
+            </div>
+
+          </form>
+
+        )}
 
       </Card>
 
@@ -503,8 +641,8 @@ export default function Profile() {
                     }}
                   >
 
-                    <div className="text-3xl mb-3">
-                      {badge.icon}
+                    <div className="mb-3" style={{ color: "var(--color-primary)" }}>
+                      <badge.icon size={26} />
                     </div>
 
 
@@ -543,22 +681,6 @@ export default function Profile() {
 
 
 
-
-
-
-      <button
-        onClick={async()=>{
-          await signOut();
-          navigate("/login");
-        }}
-        className="rounded-xl px-6 py-3 font-semibold text-sm"
-        style={{
-          border:"1px solid var(--color-line)",
-          color:"var(--color-danger)"
-        }}
-      >
-        Log Out
-      </button>
 
 
 

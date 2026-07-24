@@ -44,7 +44,7 @@ export default function NotificationBell() {
 
       {open && (
         <div
-          className="absolute left-0 top-12 w-64 max-w-[60vw] rounded-2xl p-2 z-50"
+          className=" absolute top-12 z-50 left-1/2 -translate-x-1/2 w-55 md:left-0 md:translate-x-0 md:w-64 max-w-[90vw] rounded-2xl p-2"
           style={{
             background: "var(--color-bg-elev)",
             border: "1px solid var(--color-line)",

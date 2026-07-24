@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from "react";
-import { GoalContext } from "./GoalContext";
+import { GoalContext } from "../components/GoalContext";
 import { useNavigate, useParams } from "react-router-dom";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "../components/LoadingScreen";
 import {
   FileEdit, Sparkles, Target, TrendingUp, CalendarDays, Clock,
   Brain, Flag, Flame, Bot, Eye, Rocket,

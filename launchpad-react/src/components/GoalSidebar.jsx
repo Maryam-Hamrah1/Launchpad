@@ -166,7 +166,7 @@ export default function GoalSidebar({ expanded, onToggleExpanded, mobileOpen, on
 
         {/* Clipped content */}
         <div
-          className={`h-full flex flex-col py-5 overflow-hidden ${mobileOpen ? "px-3" : "px-2"} ${
+          className={`h-full flex flex-col py-5 overflow-hidden ${mobileOpen ? "px-3" : "px-0"} ${
             expanded ? "md:px-3" : "md:px-2"
           }`}
         >

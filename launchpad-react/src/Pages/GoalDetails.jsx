@@ -1,8 +1,7 @@
 import { useContext, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
-import {Lock, Trash2, Trophy,
-  Check, Play, Medal, Link2, FileEdit, Rocket, Bot,
+import {Lock, Trash2, Trophy, FileEdit, Rocket, Bot,
 } from "lucide-react";
 
 const BIOMES = [
@@ -390,9 +389,7 @@ async function confirmDelete() {
     setGenerating(false);
   }
 
-  // ================= DRAFT VIEW =================
-  // Drafts don't get a roadmap yet — show the saved specification
-  // and let the person finish editing it or delete it.
+ 
 if (goal.status === "draft") {
     const specRows = [
       ["Category", goal.category],
@@ -650,7 +647,7 @@ const months = goal.roadmap?.months || [];
           )}
 
           {/* =============== MISSION / COACH / ACTIONS =============== */}
-          <div className="grid sm:grid-cols-3 gap-4 mt-10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10">
             {currentMonth && (
               <section className="rounded-3xl p-5" style={styles.card}>
                 <p
@@ -659,7 +656,7 @@ const months = goal.roadmap?.months || [];
                 >
                   Current Mission
                 </p>
-                <h3 className="text-lg font-bold mt-2 truncate" style={styles.title}>
+                <h3 className="text-lg font-bold mt-2 break-words leading-snug" style={styles.title}>
                   {currentMonth.title}
                 </h3>
                 <Link

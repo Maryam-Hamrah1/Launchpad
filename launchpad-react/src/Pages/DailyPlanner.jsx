@@ -173,7 +173,7 @@ export default function DailyPlanner() {
           >
             <div className="flex justify-center mb-3"><Zap size={40} style={{ color: "var(--color-primary)" }} /></div>
             <p className="text-sm text-[var(--color-ink-dim)] mb-5">
-              Today's mission hasn't been generated yet.
+              Let's start today with full of energy.
             </p>
             <button
               type="button"
@@ -181,7 +181,7 @@ export default function DailyPlanner() {
               onClick={handleGenerate}
               className="rounded-full px-6 py-3 text-sm font-bold bg-[var(--color-primary)] text-[#111] hover:brightness-110 transition disabled:opacity-50"
             >
-              {generating ? "Generating..." : "Generate Today's Tasks"}
+              {generating ? "Loading..." : "Let's Start"}
             </button>
           </div>
         ) : (

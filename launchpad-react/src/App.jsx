@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import './App.css'
 import Dashboard from './Pages/Dashbord'
-import CreateGoal from './components/CreateGoal'
+import CreateGoal from './Pages/CreateGoal'
 import GoalDetails from './Pages/GoalDetails'
 import MonthDetails from './Pages/MonthDetails'
 import DailyPlanner from './Pages/DailyPlanner'
