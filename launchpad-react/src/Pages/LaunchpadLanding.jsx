@@ -1,32 +1,56 @@
 import { useContext, useState, useEffect, useRef } from "react";
-import { href, Link } from "react-router-dom";
+import {  Link } from "react-router-dom";
 import { ThemeContext } from "../components/ThemeContext";
+import {
+  Target, Bot, BookOpen, Calendar, TrendingUp, MessageCircle,
+  Map, Repeat, PenLine, CheckCircle2, Trophy, Bell, Moon, Sun,
+  Check, Flame, Medal, Mail, MapPin, X,
+  Sparkles, Hand, Star,
+} from "lucide-react";
+
+// Brand icons (removed from lucide-react v1+) as small inline SVGs
+function GithubIcon({ size = 18, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={style}>
+      <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.09 3.29 9.4 7.86 10.93.57.1.78-.25.78-.55v-1.94c-3.2.7-3.87-1.36-3.87-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.64 1.59.24 2.76.12 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.27 5.67.42.36.78 1.07.78 2.15v3.19c0 .3.21.66.79.55A11.5 11.5 0 0 0 23.5 12c0-6.27-5.23-11.5-11.5-11.5Z" />
+    </svg>
+  );
+}
+function LinkedinIcon({ size = 18, style }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={style}>
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.8 0 0 .78 0 1.75v20.5C0 23.22.8 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.75V1.75C24 .78 23.2 0 22.22 0Z" />
+    </svg>
+  );
+}
+
+
 
 
 const FEATURES = [
-  { icon: "🎯", title: "Goal Creation", desc: "Set a goal in plain language — Launchpad structures it into a full plan." },
-  { icon: "🤖", title: "AI Roadmap Generator", desc: "Get a milestone-by-milestone route built around your goal and level." },
-  { icon: "📚", title: "Learning Resources", desc: "Every milestone comes with vetted resources, so you never search alone." },
-  { icon: "📅", title: "Daily Missions", desc: "Your roadmap breaks into daily tasks sized to fit a real schedule." },
-  { icon: "📈", title: "Progress Tracking", desc: "See exactly how far along the route you are, and what's next." },
-  { icon: "💬", title: "AI Coach", desc: "Ask questions, get unstuck, and adjust your plan as your goal evolves." },
+  { icon: Target, title: "Goal Creation", desc: "Set a goal in plain language — Launchpad structures it into a full plan." },
+  { icon: Bot, title: "AI Roadmap Generator", desc: "Get a milestone-by-milestone route built around your goal and level." },
+  { icon: BookOpen, title: "Learning Resources", desc: "Every milestone comes with vetted resources, so you never search alone." },
+  { icon: Calendar, title: "Daily Missions", desc: "Your roadmap breaks into daily tasks sized to fit a real schedule." },
+  { icon: TrendingUp, title: "Progress Tracking", desc: "See exactly how far along the route you are, and what's next." },
+  { icon: MessageCircle, title: "AI Coach", desc: "Ask questions, get unstuck, and adjust your plan as your goal evolves." },
 ];
 
 const AI_CAPABILITIES = [
-  { icon: "🗺️", title: "Personalized Roadmaps", desc: "Built around your goal, experience level, and available time." },
-  { icon: "📅", title: "Weekly Planning", desc: "Your roadmap breaks into a realistic weekly rhythm." },
-  { icon: "📚", title: "Resource Recommendation", desc: "Curated courses and material matched to each milestone." },
-  { icon: "🤖", title: "AI Mentor", desc: "Ask questions and get unstuck without leaving your roadmap." },
-  { icon: "📈", title: "Progress Prediction", desc: "See where you're headed based on your current pace." },
-  { icon: "🔁", title: "Habit Tracking", desc: "Daily streaks that keep momentum visible and rewarding." },
+  { icon: Map, title: "Personalized Roadmaps", desc: "Built around your goal, experience level, and available time." },
+  { icon: Calendar, title: "Weekly Planning", desc: "Your roadmap breaks into a realistic weekly rhythm." },
+  { icon: BookOpen, title: "Resource Recommendation", desc: "Curated courses and material matched to each milestone." },
+  { icon: Bot, title: "AI Mentor", desc: "Ask questions and get unstuck without leaving your roadmap." },
+  { icon: TrendingUp, title: "Progress Prediction", desc: "See where you're headed based on your current pace." },
+  { icon: Repeat, title: "Habit Tracking", desc: "Daily streaks that keep momentum visible and rewarding." },
 ];
 
 const STEPS = [
-  { icon: "✍️", title: "Describe Your Goal", desc: "Tell Launchpad what you're aiming for — a career, a skill, a milestone." },
-  { icon: "🤖", title: "AI Creates Your Roadmap", desc: "Launchpad plots a personalized route with milestones and resources." },
-  { icon: "✅", title: "Complete Daily Missions", desc: "Follow a manageable, day-by-day plan built around your pace." },
-  { icon: "📈", title: "Track Your Progress", desc: "Watch your roadmap fill in as streaks and milestones add up." },
-  { icon: "🏆", title: "Achieve Your Goal", desc: "Arrive with a clear record of exactly how you got there." },
+  { icon: PenLine, title: "Describe Your Goal", desc: "Tell Launchpad what you're aiming for — a career, a skill, a milestone." },
+  { icon: Bot, title: "AI Creates Your Roadmap", desc: "Launchpad plots a personalized route with milestones and resources." },
+  { icon: CheckCircle2, title: "Complete Daily Missions", desc: "Follow a manageable, day-by-day plan built around your pace." },
+  { icon: TrendingUp, title: "Track Your Progress", desc: "Watch your roadmap fill in as streaks and milestones add up." },
+  { icon: Trophy, title: "Achieve Your Goal", desc: "Arrive with a clear record of exactly how you got there." },
 ];
 
 const STATS = [
@@ -37,9 +61,9 @@ const STATS = [
 ];
 
 const STORIES = [
-  { initial: "J", name: "John", role: "Finished UX Roadmap", quote: "I finally finished the UX roadmap I'd been putting off for two years. Breaking it into daily steps made all the difference." },
-  { initial: "S", name: "Sarah", role: "Started Freelancing", quote: "Launchpad gave me a plan I could actually follow. Three months later I had my first freelance client." },
-  { initial: "A", name: "Alex", role: "Got First Job", quote: "Every milestone felt achievable instead of overwhelming. Got my first developer job right on schedule." },
+  { initial: "H", name: "Hamesha", role: "Finished UX Roadmap", quote: "I finally finished the UX roadmap I'd been putting off for two years. Breaking it into daily steps made all the difference." },
+  { initial: "M", name: "Mahdia", role: "Started Freelancing", quote: "Launchpad gave me a plan I could actually follow. Three months later I had my first freelance client." },
+  { initial: "S", name: "Samira", role: "Got First Job", quote: "Every milestone felt achievable instead of overwhelming. Got my first developer job right on schedule." },
 ];
 
 const FAQS = [
@@ -163,10 +187,10 @@ function DashboardMockup() {
               className="flex-1 flex items-center gap-1.5 rounded-lg px-2.5 h-7 text-[9.5px]"
               style={{ background: "var(--color-bg)", border: "1px solid var(--color-line)", color: "var(--color-ink-dim)" }}
             >
-              🔍 Search goals, roadmap, planner...
+               Search goals, roadmap, planner...
             </div>
             <div className="w-7 flex items-center justify-center  text-[12px] h-7 rounded-lg flex-shrink-0" style={{ background: "var(--color-bg)", border: "1px solid var(--color-line)" }} >
-              🔔
+              <Bell size={13} />
             </div>
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center text-[9.5px] font-bold flex-shrink-0"
@@ -187,12 +211,12 @@ function DashboardMockup() {
             <div className="flex justify-between items-start gap-3">
               <div className="min-w-0">
                 <span
-                  className="inline-block text-[8.5px] rounded-full px-2 py-1 mb-2"
+                  className="inline-flex items-center gap-1 text-[8.5px] rounded-full px-2 py-1 mb-2"
                   style={{ background: "color-mix(in srgb, var(--color-primary) 14%, transparent)", color: "var(--color-primary)" }}
                 >
-                  ✦ AI Career Roadmap
+                  <Sparkles size={9} /> AI Career Roadmap
                 </span>
-                <div className="text-[13px] font-bold display leading-tight">Good morning, Maryam 👋</div>
+                <div className="text-[13px] font-bold display leading-tight flex items-center gap-1">Good morning, Maryam <Hand size={13} /></div>
                 <p className="text-[9px] mt-1.5 leading-4" style={{ color: "var(--color-ink-dim)" }}>
                   Track your goals, follow your AI roadmap, and keep moving toward your future.
                 </p>
@@ -302,14 +326,14 @@ export default function LaunchpadLanding() {
               Sign up
             </Link>
             <button onClick={toggleTheme} className="btn-ghost w-9 h-9 rounded-full flex items-center justify-center text-base" aria-label="Toggle theme">
-              {isLight ? "🌙" : "☀️"}
+              {isLight ? <Moon size={16} /> : <Sun size={16} />}
             </button>
           </div>
         </div>
       </header>
 
       {/* HERO — luxury aurora */}
-      <section id="hero" className="relative pt-16 pb-16 overflow-hidden">
+      <section id="hero" className="relative pt-10 pb-16 overflow-hidden">
         <div
           className="aurora-blob absolute w-[520px] h-[520px] rounded-full blur-3xl -top-40 -left-32 pointer-events-none"
           style={{ background: "color-mix(in srgb, var(--color-primary) 20%, transparent)" }}
@@ -404,7 +428,7 @@ export default function LaunchpadLanding() {
               {["\"best way to learn UX design 2024\"", "\"react roadmap for beginners\"", "\"free courses vs paid — which one\""].map((q) => (
                 <div key={q} className="flex items-center justify-between rounded-lg px-3.5 py-2.5 mb-2" style={{ background: "var(--color-bg)" }}>
                   <span className="text-xs" style={{ color: "var(--color-ink-dim)" }}>{q}</span>
-                  <span style={{ color: "var(--color-danger)" }}>✕</span>
+                  <X size={14} style={{ color: "var(--color-danger)" }} />
                 </div>
               ))}
               <div
@@ -412,7 +436,7 @@ export default function LaunchpadLanding() {
                 style={{ background: "color-mix(in srgb, var(--color-success) 10%, transparent)", border: "1px solid var(--color-success)" }}
               >
                 <span className="text-xs font-semibold" style={{ color: "var(--color-success)" }}>Launchpad builds your roadmap instantly</span>
-                <span style={{ color: "var(--color-success)" }}>✓</span>
+                <Check size={14} style={{ color: "var(--color-success)" }} />
               </div>
             </Card>
           </Reveal>
@@ -437,10 +461,10 @@ export default function LaunchpadLanding() {
                   style={{ background: "linear-gradient(160deg, var(--color-bg-elev), var(--color-bg-elev2))" }}
                 >
                   <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center text-lg mb-4"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
                     style={{ background: "color-mix(in srgb, var(--color-primary) 14%, transparent)" }}
                   >
-                    {c.icon}
+                    <c.icon size={20} style={{ color: "var(--color-primary)" }} />
                   </div>
                   <h3 className="display font-semibold text-base mb-2">{c.title}</h3>
                   <p className="text-sm" style={{ color: "var(--color-ink-dim)" }}>{c.desc}</p>
@@ -508,9 +532,13 @@ export default function LaunchpadLanding() {
 
                   <span className="mono text-[10px] mt-4 block" style={{ color: "var(--color-ink-dim)" }}>ACHIEVEMENTS</span>
                   <div className="flex gap-2 mt-2">
-                    {["🔥 9-Day Streak", "🏅 First Milestone", "🎯 Goal Started"].map((a) => (
-                      <span key={a} className="text-[10px] rounded-full px-2.5 py-1.5" style={{ background: "color-mix(in srgb, var(--color-primary) 12%, transparent)", color: "var(--color-primary)" }}>
-                        {a}
+                    {[
+                      { Icon: Flame, label: "9-Day Streak" },
+                      { Icon: Medal, label: "First Milestone" },
+                      { Icon: Target, label: "Goal Started" },
+                    ].map(({ Icon, label }) => (
+                      <span key={label} className="inline-flex items-center gap-1 text-[10px] rounded-full px-2.5 py-1.5" style={{ background: "color-mix(in srgb, var(--color-primary) 12%, transparent)", color: "var(--color-primary)" }}>
+                        <Icon size={11} /> {label}
                       </span>
                     ))}
                   </div>
@@ -536,10 +564,10 @@ export default function LaunchpadLanding() {
               <Reveal key={f.title}>
                 <Card className="hover-card p-7 h-full">
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-lg mb-4"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
                     style={{ background: "var(--color-bg-elev2)", border: "1px solid var(--color-line)" }}
                   >
-                    {f.icon}
+                    <f.icon size={18} style={{ color: "var(--color-primary)" }} />
                   </div>
                   <h3 className="display font-semibold text-base mb-2">{f.title}</h3>
                   <p className="text-sm" style={{ color: "var(--color-ink-dim)" }}>{f.desc}</p>
@@ -586,10 +614,10 @@ export default function LaunchpadLanding() {
               <Reveal key={s.title}>
                 <div className="grid gap-5 py-6" style={{ gridTemplateColumns: "48px 1fr" }}>
                   <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-lg z-10"
+                    className="w-12 h-12 rounded-full flex items-center justify-center z-10"
                     style={{ background: "var(--color-bg-elev)", border: "2px solid var(--color-primary)" }}
                   >
-                    {s.icon}
+                    <s.icon size={18} style={{ color: "var(--color-primary)" }} />
                   </div>
                   <div>
                     <span className="mono block text-xs mb-1 opacity-70" style={{ color: "var(--color-ink-dim)" }}>STEP {i + 1}</span>
@@ -638,7 +666,11 @@ export default function LaunchpadLanding() {
             {STORIES.map((s) => (
               <Reveal key={s.name}>
                 <Card className="hover-card p-6 h-full">
-                  <div className="text-sm tracking-widest mb-3" style={{ color: "var(--color-primary)" }}>★★★★★</div>
+                  <div className="flex gap-0.5 mb-3" style={{ color: "var(--color-primary)" }}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={14} fill="currentColor" />
+                    ))}
+                  </div>
                   <p className="text-sm mb-5" style={{ color: "var(--color-ink-dim)", minHeight: "60px" }}>"{s.quote}"</p>
                   <div className="flex items-center gap-2.5">
                     <div
@@ -698,7 +730,7 @@ export default function LaunchpadLanding() {
               <Card className="p-7">
                 {contactSent ? (
                   <div className="text-center py-10">
-                    <div className="text-4xl mb-3">✅</div>
+                    <div className="flex justify-center mb-3"><CheckCircle2 size={40} style={{ color: "var(--color-success)" }} /></div>
                     <p className="text-sm" style={{ color: "var(--color-ink-dim)" }}>
                       Thanks — your message has been sent. We'll get back to you soon.
                     </p>
@@ -745,17 +777,17 @@ export default function LaunchpadLanding() {
             <Reveal>
               <Card className="p-7 h-full flex flex-col gap-5 justify-center">
                 {[
-                  ["✉️", "Email", "mhamrah112@gmail.com"],
-                  ["🐙", "GitHub", "https://github.com/Maryam-Hamrah1"],
-                  ["💼", "LinkedIn", "https://www.linkedin.com/in/maryam-hamrah-5187442ab"],
-                  ["📍", "Location", "Afghanistan"],
-                ].map(([icon, label, value]) => (
+                  { Icon: Mail, label: "Email", value: "mhamrah112@gmail.com" },
+                  { Icon: GithubIcon, label: "GitHub", value: "https://github.com/Maryam-Hamrah1" },
+                  { Icon: LinkedinIcon, label: "LinkedIn", value: "https://www.linkedin.com/in/maryam-hamrah-5187442ab" },
+                  { Icon: MapPin, label: "Location", value: "Afghanistan" },
+                ].map(({ Icon, label, value }) => (
                   <div key={label} className="flex items-center gap-3.5">
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-base flex-shrink-0"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: "var(--color-bg-elev2)", border: "1px solid var(--color-line)" }}
                     >
-                      {icon}
+                      <Icon size={18} style={{ color: "var(--color-primary)" }} />
                     </div>
                     <div>
                       <div className="text-xs" style={{ color: "var(--color-ink-dim)" }}>{label}</div>
@@ -845,4 +877,3 @@ export default function LaunchpadLanding() {
     </div>
   );
 }
-

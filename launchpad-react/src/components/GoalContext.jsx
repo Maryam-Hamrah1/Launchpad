@@ -118,6 +118,27 @@ export function GoalProvider({ children }) {
     setGoals((prev) => prev.filter((g) => g.id !== id));
   }
 
+  // Updates a draft's form fields. Pass activate:true to also flip it to
+  // "active" status (used when finishing edit + generating a roadmap).
+  async function updateGoalFields(id, form, { activate } = {}) {
+    const row = mapFormToRow(form, activate ? "active" : "draft", user.id);
+
+    const { data, error } = await supabase
+      .from("goals")
+      .update(row)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to update goal:", error.message);
+      return null;
+    }
+
+    setGoals((prev) => prev.map((g) => (g.id === id ? data : g)));
+    return data;
+  }
+
   const activeGoals = goals.filter((g) => g.status === "active");
   const drafts = goals.filter((g) => g.status === "draft");
   const WORKER_URL = "https://launchpad-worker.maryam-ai.workers.dev";
@@ -328,6 +349,22 @@ export function GoalProvider({ children }) {
     return saveRoadmap(goal.id, updatedRoadmap);
   }
 
+  async function generateProgressFeedback(goalsSummary) {
+    const res = await fetch(`${WORKER_URL}/progress`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goalsSummary }),
+    });
+
+    if (!res.ok) {
+      console.error("Progress feedback failed:", await res.text());
+      return null;
+    }
+
+    const { feedback } = await res.json();
+    return feedback;
+  }
+
   return (
     <GoalContext.Provider
       value={{
@@ -339,6 +376,7 @@ export function GoalProvider({ children }) {
         saveDraft,
         promoteDraft,
         deleteGoal,
+        updateGoalFields,
         generateRoadmap,
         generateMonthDetail,
         toggleDayCompletion,
@@ -346,6 +384,7 @@ export function GoalProvider({ children }) {
         toggleDayTask,
         saveDayNotes,
         completeDay,
+        generateProgressFeedback,
       }}
     >
       {children}

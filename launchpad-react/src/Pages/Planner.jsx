@@ -1,6 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
+import { Trophy, Check, NotebookPen, Calendar } from "lucide-react";
 
 const cardStyle = {
   background: "var(--color-bg-elev)",
@@ -79,9 +80,9 @@ function GoalPlannerCard({ goal, toggleDayTask }) {
         <h3 className="font-semibold text-base mb-2" style={headingFont}>
           {goal.title}
         </h3>
-        <p className="text-sm" style={{ color: "var(--color-success)" }}>
-          🏆 All days completed for this month!
-        </p>
+       <p className="text-sm flex items-center gap-1.5" style={{ color: "var(--color-success)" }}>
+  <Trophy size={14} /> All days completed for this month!
+</p>
       </div>
     );
   }
@@ -146,7 +147,7 @@ function GoalPlannerCard({ goal, toggleDayTask }) {
                   : { border: "1px solid var(--color-line-strong)" }
               }
             >
-              {task.done ? "✓" : ""}
+              {task.done ? <Check size={10} /> : ""}
             </span>
             <span
               className="text-sm"
@@ -285,9 +286,9 @@ function NotePanel({ selectedDate, notes, onSave }) {
 
   return (
     <div className="rounded-2xl p-6" style={cardStyle}>
-      <h2 className="font-semibold text-sm mb-1" style={headingFont}>
-        📝 Notes — {label}
-      </h2>
+      <h2 className="font-semibold text-sm mb-1 flex items-center gap-1.5" style={headingFont}>
+  <NotebookPen size={14} /> Notes — {label}
+</h2>
       <p className="text-xs mb-3" style={dimStyle}>
         Jot down anything for this day.
       </p>
@@ -348,18 +349,18 @@ export default function Planner() {
   const activeGoals = goals.filter((g) => g.status === "active");
 
   return (
-    <div className="min-h-screen py-12 px-5" style={{ background: "var(--color-bg)", color: "var(--color-ink)" }}>
+    <div className="min-h-screen pt-0 pb-12 px-5" style={{ background: "var(--color-bg)", color: "var(--color-ink)" }}>
       <div className="max-w-5xl mx-auto">
         <div className="mb-8">
           <span
-            className="inline-block font-mono text-xs rounded-full px-3 py-1.5 mb-3"
-            style={{
-              border: "1px solid var(--color-line-strong)",
-              color: "var(--color-primary)",
-            }}
-          >
-            📅 PLANNER
-          </span>
+  className="inline-flex items-center gap-1.5 font-mono text-xs rounded-full px-3 py-1.5 mb-3"
+  style={{
+    border: "1px solid var(--color-line-strong)",
+    color: "var(--color-primary)",
+  }}
+>
+  <Calendar size={12} /> PLANNER
+</span>
           <h1 className="font-bold text-3xl" style={headingFont}>
             Today & Your Calendar
           </h1>

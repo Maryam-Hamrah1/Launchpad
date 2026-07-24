@@ -1,7 +1,11 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { GoalContext } from "./GoalContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import LoadingScreen from "./LoadingScreen";
+import {
+  FileEdit, Sparkles, Target, TrendingUp, CalendarDays, Clock,
+  Brain, Flag, Flame, Bot, Eye, Rocket,
+} from "lucide-react";
 
 const initialForm = {
   goalTitle: "",
@@ -71,16 +75,16 @@ function pillStyle(active, accent = "primary") {
   };
 }
 
-function SectionHeader({ icon, title, subtitle }) {
+function SectionHeader({ icon: Icon, title, subtitle }) {
   return (
     <div className="flex items-start gap-3 mb-6">
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{
           background: "color-mix(in srgb, var(--color-primary) 14%, transparent)",
         }}
       >
-        {icon}
+        <Icon size={18} style={{ color: "var(--color-primary)" }} />
       </div>
       <div>
         <h2 className="text-xl font-semibold" style={{ ...headingFont, color: "var(--color-ink)" }}>
@@ -97,13 +101,40 @@ function SectionHeader({ icon, title, subtitle }) {
 }
 
 function CreateGoal() {
+  const { draftId } = useParams();
+
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMode, setSubmitMode] = useState(null);
+  const [loadedDraft, setLoadedDraft] = useState(false);
 
-  const { createGoal, saveDraft, generateRoadmap } = useContext(GoalContext);
+  const { goals, createGoal, saveDraft, updateGoalFields, generateRoadmap } = useContext(GoalContext);
   const navigate = useNavigate();
+
+  const isEditing = Boolean(draftId);
+
+  // Pre-fill the form when editing an existing draft
+  useEffect(() => {
+    if (!draftId || loadedDraft) return;
+
+    const draft = goals.find((g) => String(g.id) === draftId);
+    if (!draft) return;
+
+    setForm({
+      goalTitle: draft.title || "",
+      goalCategory: draft.category || "",
+      goalDescription: draft.description || "",
+      experienceLevel: draft.experience_level || "",
+      timeline: draft.timeline || "",
+      studyHours: draft.study_hours || "",
+      learningStyle: draft.learning_style || [],
+      goalPriority: draft.priority || "",
+      motivation: draft.motivation || "",
+      aiOptions: draft.ai_options || initialForm.aiOptions,
+    });
+    setLoadedDraft(true);
+  }, [draftId, goals, loadedDraft]);
 
   function handlechange(e) {
     const { name, value } = e.target;
@@ -154,7 +185,9 @@ function CreateGoal() {
     setSubmitMode("goal");
     setIsSubmitting(true);
 
-    const goal = await createGoal(form);
+    const goal = isEditing
+      ? await updateGoalFields(draftId, form, { activate: true })
+      : await createGoal(form);
 
     if (!goal) {
       setIsSubmitting(false);
@@ -171,7 +204,9 @@ function CreateGoal() {
     setSubmitMode("draft");
     setIsSubmitting(true);
 
-    const draft = await saveDraft(form);
+    const draft = isEditing
+      ? await updateGoalFields(draftId, form)
+      : await saveDraft(form);
 
     if (!draft) {
       setIsSubmitting(false);
@@ -225,21 +260,27 @@ function CreateGoal() {
         {/* Intro */}
         <section className="mb-12 mt-10 text-center">
           <span
-            className="inline-flex rounded-full px-4 py-1.5 text-xs font-semibold mb-4"
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold mb-4"
             style={{
               background: "color-mix(in srgb, var(--color-primary) 14%, transparent)",
               color: "var(--color-primary)",
             }}
           >
-            ✨ AI-Powered Roadmap
+            {isEditing ? <><FileEdit size={13} /> Continue Your Draft</> : <><Sparkles size={13} /> AI-Powered Roadmap</>}
           </span>
 
           <h1
             className="text-4xl font-bold leading-tight mb-4"
             style={headingFont}
           >
-            Turn your dreams into a{" "}
-            <span style={{ color: "var(--color-primary)" }}>roadmap</span>
+            {isEditing ? (
+              "Finish setting up your goal"
+            ) : (
+              <>
+                Turn your dreams into a{" "}
+                <span style={{ color: "var(--color-primary)" }}>roadmap</span>
+              </>
+            )}
           </h1>
 
           <p className="text-sm leading-relaxed max-w-xl mx-auto" style={dimStyle}>
@@ -271,7 +312,7 @@ function CreateGoal() {
           {/* Goal Information */}
           <section className="rounded-3xl p-7 mb-5" style={cardStyle}>
             <SectionHeader
-              icon="🎯"
+              icon={Target}
               title="Goal Information"
               subtitle="Start by describing what you want to achieve."
             />
@@ -334,7 +375,7 @@ function CreateGoal() {
           {/* Experience Level */}
           <section className="rounded-3xl p-7 mb-5" style={cardStyle}>
             <SectionHeader
-              icon="📈"
+              icon={TrendingUp}
               title="Experience Level"
               subtitle="Where are you starting from?"
             />
@@ -370,7 +411,7 @@ function CreateGoal() {
           {/* Timeline + Study Hours */}
           <div className="grid md:grid-cols-2 gap-5 mb-5">
             <section className="rounded-3xl p-7" style={cardStyle}>
-              <SectionHeader icon="🗓" title="Timeline" />
+              <SectionHeader icon={CalendarDays} title="Timeline" />
               <select
                 name="timeline"
                 value={form.timeline}
@@ -388,7 +429,7 @@ function CreateGoal() {
             </section>
 
             <section className="rounded-3xl p-7" style={cardStyle}>
-              <SectionHeader icon="⏱" title="Weekly Study Hours" />
+              <SectionHeader icon={Clock} title="Weekly Study Hours" />
               <select
                 name="studyHours"
                 value={form.studyHours}
@@ -409,7 +450,7 @@ function CreateGoal() {
           {/* Learning Style */}
           <section className="rounded-3xl p-7 mb-5" style={cardStyle}>
             <SectionHeader
-              icon="🧠"
+              icon={Brain}
               title="Preferred Learning Style"
               subtitle="Choose how you prefer to learn."
             />
@@ -437,7 +478,7 @@ function CreateGoal() {
 
           {/* Goal Priority */}
           <section className="rounded-3xl p-7 mb-5" style={cardStyle}>
-            <SectionHeader icon="🚩" title="Goal Priority" />
+            <SectionHeader icon={Flag} title="Goal Priority" />
             <select
               name="goalPriority"
               value={form.goalPriority}
@@ -454,7 +495,7 @@ function CreateGoal() {
 
           {/* Motivation */}
           <section className="rounded-3xl p-7 mb-5" style={cardStyle}>
-            <SectionHeader icon="🔥" title="Motivation" subtitle="Why does this goal matter to you?" />
+            <SectionHeader icon={Flame} title="Motivation" subtitle="Why does this goal matter to you?" />
             <textarea
               name="motivation"
               rows="4"
@@ -469,7 +510,7 @@ function CreateGoal() {
           {/* AI Preferences */}
           <section className="rounded-3xl p-7 mb-5" style={cardStyle}>
             <SectionHeader
-              icon="🤖"
+              icon={Bot}
               title="AI Preferences"
               subtitle="Choose what your AI roadmap should include."
             />
@@ -502,7 +543,7 @@ function CreateGoal() {
           {/* Goal Preview */}
           <section className="rounded-3xl p-7 mb-6" style={cardStyle}>
             <SectionHeader
-              icon="👁"
+              icon={Eye}
               title="Goal Preview"
               subtitle="Review your goal before creating your AI roadmap."
             />
@@ -531,14 +572,14 @@ function CreateGoal() {
           <section className="flex flex-col sm:flex-row gap-3 mb-10">
             <button
               type="submit"
-              className="flex-1 rounded-full py-4 text-sm font-semibold transition hover:brightness-110"
+              className="flex-1 rounded-full py-4 text-sm font-semibold transition hover:brightness-110 inline-flex items-center justify-center gap-2"
               style={{
                 background: "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
                 color: "#111",
                 boxShadow: "var(--shadow-card)",
               }}
             >
-              🚀 Generate Roadmap
+              <Rocket size={16} /> {isEditing ? "Activate & Generate Roadmap" : "Generate Roadmap"}
             </button>
 
             <button

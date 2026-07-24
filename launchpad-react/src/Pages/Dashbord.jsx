@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { AuthContext } from "../components/AuthContext";
 import { GoalContext } from "../components/GoalContext";
 import StreakCalendar from "../components/StreackCalender";
+import { collectCompletedDays, computeStreak } from "../components/streakUtils";
+import {Bot, Sparkles} from "lucide-react"
+
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -35,37 +38,6 @@ function computeProgress(goal) {
   if (totalDays === 0) return 0;
 
   return Math.round((completedDays / totalDays) * 100);
-}
-
-function collectCompletedDays(goals) {
-  const days = [];
-
-  goals.forEach((goal) => {
-    goal.roadmap?.months.forEach((month) => {
-      (month.detail?.days || []).forEach((day) => {
-        if (day.completed && day.completedAt) {
-          days.push(day);
-        }
-      });
-    });
-  });
-
-  return days;
-}
-
-function computeStreak(completedDays) {
-  const completed = new Set(
-    completedDays.map((d) => new Date(d.completedAt).toDateString()),
-  );
-
-  let streak = 0;
-  const date = new Date();
-  while (completed.has(date.toDateString())) {
-    streak++;
-    date.setDate(date.getDate() - 1);
-  }
-
-  return streak;
 }
 
 function computeScore(goals, streak) {
@@ -303,13 +275,13 @@ export default function Dashboard() {
           <div className="grid lg:grid-cols-[1.6fr_1fr] gap-8 items-center">
             <div>
               <span
-                className="inline-flex px-3 py-1 rounded-full text-xs mb-5"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs mb-5"
                 style={{
                   color: "var(--color-primary)",
                   background: "rgba(255,138,61,.12)",
                 }}
               >
-                ✨ AI Career Roadmap
+                <Sparkles size={13} /> AI Career Roadmap
               </span>
 
               <h1
@@ -449,7 +421,7 @@ export default function Dashboard() {
               border: "1px solid rgba(255,138,61,.18)",
             }}
           >
-            <div className="text-3xl mb-3">🤖</div>
+            <div className="text-3xl mb-3"><Bot/></div>
 
             <h3
               className="font-bold mb-2"

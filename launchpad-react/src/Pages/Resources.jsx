@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
+import { GraduationCap, BookOpen, PlayCircle, FileText, Wrench, Link2, Library } from "lucide-react";
 
 const TYPE_ICONS = {
-  Course: "🎓",
-  Book: "📘",
-  YouTube: "▶️",
-  Documentation: "📄",
-  "Project Idea": "🛠",
+  Course: GraduationCap,
+  Book: BookOpen,
+  YouTube: PlayCircle,
+  Documentation: FileText,
+  "Project Idea": Wrench,
 };
 
 
@@ -142,7 +143,7 @@ boxShadow:
 
 
 <span
-className="inline-flex rounded-full px-3 py-1 text-xs mb-4"
+className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs mb-4"
 style={{
 
 background:
@@ -153,7 +154,7 @@ color:
 
 }}
 >
-📚 RESOURCE LIBRARY
+<Library size={13} /> RESOURCE LIBRARY
 </span>
 
 
@@ -403,7 +404,10 @@ className="flex justify-between items-start mb-4"
 
 <div className="text-2xl">
 {
-TYPE_ICONS[r.type] || "🔗"
+(() => {
+  const TypeIcon = TYPE_ICONS[r.type] || Link2;
+  return <TypeIcon size={22} />;
+})()
 }
 </div>
 

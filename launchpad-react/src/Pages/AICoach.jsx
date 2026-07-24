@@ -2,6 +2,7 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../components/AuthContext";
 import { GoalContext } from "../components/GoalContext";
 import { supabase } from "../supabaseClient";
+import { Bot, Rocket, Sparkles } from "lucide-react";
 
 const WORKER_URL = "https://launchpad-worker.maryam-ai.workers.dev";
 
@@ -44,7 +45,7 @@ function Avatar({ role, initial }) {
         color: isUser ? "#111" : "var(--color-ink)",
       }}
     >
-      {isUser ? initial : "🤖"}
+      {isUser ? initial : <Bot size={16} />}
     </div>
   );
 }
@@ -158,7 +159,7 @@ export default function AICoach() {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <style>{`
         @keyframes typingBounce {
           0%, 60%, 100% { transform: translateY(0); opacity: .5; }
@@ -183,12 +184,12 @@ export default function AICoach() {
         }}
       >
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
           style={{
             background: "linear-gradient(135deg, var(--color-primary), var(--color-primary-light))",
           }}
         >
-          🤖
+          <Bot size={22} style={{ color: "#111" }} />
         </div>
 
         <div>
@@ -198,29 +199,29 @@ export default function AICoach() {
           >
             AI COACH
           </span>
-          <h1 className="text-xl font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            Your AI Guide For Every Step 🚀
+          <h1 className="text-xl font-bold flex items-center gap-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Your AI Guide For Every Step <Rocket size={18} style={{ color: "var(--color-primary)" }} />
           </h1>
         </div>
       </section>
 
       {/* CHAT BOX */}
       <div
-        className="rounded-3xl p-4 flex flex-col gap-4 min-h-[460px] max-h-[640px]"
+        className="rounded-3xl p-3 flex flex-col gap-3 min-h-[360px] max-h-[460px]"
         style={{
           background: "var(--color-bg-elev)",
           border: "1px solid var(--color-line)",
           boxShadow: "var(--shadow-card)",
         }}
       >
-        <div className="flex-1 overflow-y-auto space-y-4 px-1">
+        <div className="flex-1 overflow-y-auto space-y-3 px-1">
           {loadingHistory ? (
-            <p className="text-sm text-center mt-20" style={{ color: "var(--color-ink-dim)" }}>
+            <p className="text-sm text-center mt-16" style={{ color: "var(--color-ink-dim)" }}>
               Loading...
             </p>
           ) : messages.length === 0 ? (
-            <div className="text-center mt-10 px-4">
-              <div className="text-4xl mb-3">✨</div>
+            <div className="text-center mt-6 px-4">
+              <div className="flex justify-center mb-2"><Sparkles size={28} style={{ color: "var(--color-primary)" }} /></div>
               <p className="text-sm mb-6" style={{ color: "var(--color-ink-dim)" }}>
                 Ask about your goals, roadmap, or next career step.
               </p>

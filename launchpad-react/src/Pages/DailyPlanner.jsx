@@ -1,6 +1,37 @@
 import { useContext, useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams,  useNavigate } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
+import { collectCompletedDays, computeStreak, hasCompletedToday } from "../components/streakUtils";
+import {
+  Flame, PartyPopper, Lock, Medal, Target, Zap, BookOpen,
+  Bot, Check, Library, Clapperboard, GraduationCap, Link2,
+  CheckCircle2, FlagTriangleRight,
+} from "lucide-react";
+
+function StreakToast({ streak }) {
+  if (streak === null) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+      <div
+        className="rounded-[32px] px-10 py-9 text-center max-w-xs"
+        style={{
+          background: "linear-gradient(160deg, var(--color-bg-elev), var(--color-bg-elev2))",
+          border: "1px solid var(--color-primary)",
+          boxShadow: "0 0 50px color-mix(in srgb, var(--color-primary) 35%, transparent)",
+        }}
+      >
+        <div className="flex justify-center mb-3"><Flame size={48} style={{ color: "var(--color-primary)" }} /></div>
+        <h2 className="text-2xl font-bold mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+          Wow, nice work!
+        </h2>
+        <p style={{ color: "var(--color-ink-dim)" }} className="inline-flex items-center gap-1.5 flex-wrap justify-center">
+          Your streak is now <span style={{ color: "var(--color-primary)", fontWeight: 700 }}>{streak} day{streak === 1 ? "" : "s"}</span> <PartyPopper size={16} />
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function DailyPlanner() {
   const { goalId, monthIndex, dayIndex } = useParams();
@@ -17,6 +48,7 @@ export default function DailyPlanner() {
   const [generating, setGenerating] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
+  const [streakToast, setStreakToast] = useState(null);
 
   const goal = goals.find((g) => String(g.id) === goalId);
   const month = goal?.roadmap?.months.find((m) => String(m.index) === monthIndex);
@@ -53,7 +85,7 @@ export default function DailyPlanner() {
   if (isLocked) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 px-6 text-center">
-        <div className="text-6xl">🔒</div>
+        <Lock size={48} style={{ color: "var(--color-ink-dim)" }} />
         <p className="text-[var(--color-ink-dim)]">
           Day {day.index} unlocks after you finish Day {day.index - 1}.
         </p>
@@ -74,8 +106,26 @@ export default function DailyPlanner() {
   }
 
   async function handleCompleteDay() {
+    // Was any day (in any goal) already completed today, before this one?
+    const alreadyLoggedToday = hasCompletedToday(goals);
+
     await completeDay(goal, month.index, day.index);
-    navigate(monthBackLink);
+
+    if (alreadyLoggedToday) {
+      navigate(monthBackLink);
+      return;
+    }
+
+    // First completion of the day — compute the new streak locally
+    // (don't wait on context refetch) and celebrate it.
+    const priorDays = collectCompletedDays(goals);
+    const newStreak = computeStreak([
+      ...priorDays,
+      { completedAt: new Date().toISOString() },
+    ]);
+
+    setStreakToast(newStreak);
+    setTimeout(() => navigate(monthBackLink), 1800);
   }
 
   const detail = day.detail;
@@ -85,7 +135,9 @@ export default function DailyPlanner() {
   const taskPct = totalCount ? Math.round((doneCount / totalCount) * 100) : 0;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <>
+      <StreakToast streak={streakToast} />
+      <div className="max-w-2xl mx-auto">
         {/* Hero header */}
         <div
           className="rounded-3xl p-8 mb-6 text-center"
@@ -100,7 +152,9 @@ export default function DailyPlanner() {
             {goal.title} · Month {month.index} · Day {day.index} of {days.length}
           </span>
 
-          <div className="text-6xl my-4">{day.completed ? "🏅" : "🎯"}</div>
+          <div className="flex justify-center my-4">
+            {day.completed ? <Medal size={48} /> : <Target size={48} />}
+          </div>
           <h1
             className="font-bold text-3xl"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
@@ -117,7 +171,7 @@ export default function DailyPlanner() {
               border: "1px solid var(--color-line)",
             }}
           >
-            <div className="text-5xl mb-3">⚡️</div>
+            <div className="flex justify-center mb-3"><Zap size={40} style={{ color: "var(--color-primary)" }} /></div>
             <p className="text-sm text-[var(--color-ink-dim)] mb-5">
               Today's mission hasn't been generated yet.
             </p>
@@ -136,10 +190,10 @@ export default function DailyPlanner() {
             {detail.overview && (
               <div className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-bg-elev)] p-6 mb-6">
                 <h2
-                  className="font-semibold text-lg mb-2"
+                  className="font-semibold text-lg mb-2 flex items-center gap-2"
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
-                  📖 What Today Covers
+                  <BookOpen size={18} /> What Today Covers
                 </h2>
                 <p className="text-sm text-[var(--color-ink-dim)] leading-7">{detail.overview}</p>
               </div>
@@ -148,10 +202,10 @@ export default function DailyPlanner() {
             {/* AI Tip */}
             <div className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-bg-elev)] p-6 mb-6">
               <span
-                className="font-mono text-[11px] block mb-2"
+                className="font-mono text-[11px] mb-2 flex items-center gap-1.5"
                 style={{ color: "var(--color-primary)" }}
               >
-                🤖 AI TIP
+                <Bot size={13} /> AI TIP
               </span>
               <p className="text-sm text-[var(--color-ink)]">{detail.aiTip}</p>
             </div>
@@ -207,7 +261,7 @@ export default function DailyPlanner() {
                             : { border: "1px solid var(--color-line-strong)" }
                         }
                       >
-                        {task.done ? "✓" : ""}
+                        {task.done ? <Check size={12} /> : ""}
                       </span>
                       <span className="flex-1">
                         <span
@@ -236,10 +290,10 @@ export default function DailyPlanner() {
             {Array.isArray(detail.resources) && detail.resources.length > 0 && (
               <div className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-bg-elev)] p-6 mb-6">
                 <h2
-                  className="font-semibold text-lg mb-4"
+                  className="font-semibold text-lg mb-4 flex items-center gap-2"
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
-                  📚 Resources for Today
+                  <Library size={18} /> Resources for Today
                 </h2>
                 <div className="flex flex-col gap-2">
                   {detail.resources.map((r, i) => (
@@ -252,13 +306,13 @@ export default function DailyPlanner() {
                       style={{ border: "1px solid var(--color-line)" }}
                     >
                       <span className="flex items-center gap-3 min-w-0">
-                        <span className="text-xl flex-shrink-0">
+                        <span className="flex-shrink-0">
                           {r.type?.toLowerCase().includes("video") ||
                           r.type?.toLowerCase().includes("youtube")
-                            ? "🎬"
+                            ? <Clapperboard size={18} />
                             : r.type?.toLowerCase().includes("course")
-                            ? "🎓"
-                            : "🔗"}
+                            ? <GraduationCap size={18} />
+                            : <Link2 size={18} />}
                         </span>
                         <span className="min-w-0">
                           <span className="block text-sm text-[var(--color-ink)] truncate">
@@ -304,20 +358,22 @@ export default function DailyPlanner() {
                 className="flex items-center justify-center gap-2 text-sm font-semibold rounded-full py-3"
                 style={{ color: "var(--color-success)", background: "color-mix(in srgb, var(--color-success) 10%, transparent)" }}
               >
-                ✅ Day completed
+                <CheckCircle2 size={16} /> Day completed
               </div>
             ) : (
               <button
                 type="button"
                 disabled={!allDone}
                 onClick={handleCompleteDay}
-                className="w-full rounded-full px-5 py-3 text-sm font-bold bg-[var(--color-success)] text-[#111] hover:brightness-110 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full rounded-full px-5 py-3 text-sm font-bold bg-[var(--color-success)] text-[#111] hover:brightness-110 transition disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
               >
-                {allDone ? "🏁 Mark Day Complete" : `Complete all tasks (${doneCount}/${totalCount})`}
+                {allDone ? <><FlagTriangleRight size={16} /> Mark Day Complete</> : `Complete all tasks (${doneCount}/${totalCount})`}
               </button>
             )}
           </>
         )}
-    </div>
+      </div>
+    </>
   );
 }
+

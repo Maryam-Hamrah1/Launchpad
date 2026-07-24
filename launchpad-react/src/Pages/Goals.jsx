@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
+import { Sparkles, Rocket } from "lucide-react";
 
 
 function getEffectiveStatus(goal) {
@@ -234,29 +235,23 @@ export default function Goals() {
 
 
         <span
-          className="inline-flex rounded-full px-3 py-1 text-xs mb-4"
-          style={{
-            background:
-              "rgba(255,138,61,.12)",
-            color:
-              "var(--color-primary)",
-          }}
-        >
-          ✨ YOUR JOURNEY
-        </span>
+  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs mb-4"
+  style={{
+    background: "rgba(255,138,61,.12)",
+    color: "var(--color-primary)",
+  }}
+>
+  <Sparkles size={13} /> YOUR JOURNEY
+</span>
 
-
-
-        <h1
-          className="text-3xl md:text-4xl font-bold mb-3"
-          style={{
-            fontFamily:
-              "'Space Grotesk', sans-serif",
-          }}
-        >
-          Every Goal Is A New Journey 🚀
-        </h1>
-
+<h1
+  className="text-3xl md:text-4xl font-bold mb-3 flex items-center gap-2"
+  style={{
+    fontFamily: "'Space Grotesk', sans-serif",
+  }}
+>
+  Every Goal Is A New Journey <Rocket size={26} style={{ color: "var(--color-primary)" }} />
+</h1>
 
 
         <p

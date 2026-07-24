@@ -1,6 +1,9 @@
 import { useContext, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
+import {Lock, Trash2, Trophy,
+  Check, Play, Medal, Link2, FileEdit, Rocket, Bot,
+} from "lucide-react";
 
 const BIOMES = [
   "🏜", "🌲", "⛰", "🌊",
@@ -163,7 +166,7 @@ function LockedModal({ month, onClose }) {
         className="w-[520px] max-w-[90vw] rounded-[32px] p-8"
         style={styles.card}
       >
-        <div className="text-6xl">🔒</div>
+        <Lock size={48} style={{ color: "var(--color-ink-dim)" }} />
         <h2 className="text-3xl font-bold mt-5" style={styles.title}>
           Month {month.index}
         </h2>
@@ -181,6 +184,44 @@ function LockedModal({ month, onClose }) {
         >
           Close
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* ===============================
+        Delete Modal Confirmation
+================================ */
+
+function ConfirmDeleteModal({ goalTitle, onCancel, onConfirm }) {
+  if (!goalTitle) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
+      <div className="w-[440px] max-w-[90vw] rounded-[32px] p-8" style={styles.card}>
+        <Trash2 size={48} style={{ color: "var(--color-danger)" }} />
+        <h2 className="text-2xl font-bold mt-5" style={styles.title}>
+          Delete this goal?
+        </h2>
+        <p className="mt-3 leading-7" style={styles.dim}>
+          "{goalTitle}" and all its progress will be permanently removed. This can't be undone.
+        </p>
+        <div className="flex gap-3 mt-8">
+          <button
+            onClick={onCancel}
+            className="flex-1 px-6 py-3 rounded-xl font-semibold"
+            style={{ border: "1px solid var(--color-line-strong)", color: "var(--color-ink)" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 px-6 py-3 rounded-xl font-semibold"
+            style={{ background: "var(--color-danger)", color: "#fff" }}
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -307,10 +348,13 @@ function JourneyNode({ month, goalId, icon, alignRight, onLockedClick }) {
 
 export default function GoalDetails() {
   const { goalId } = useParams();
-  const { goals, loading, generateRoadmap } = useContext(GoalContext);
+  const { goals, loading, generateRoadmap, deleteGoal } = useContext(GoalContext);
+  const navigate = useNavigate();
 
   const [generating, setGenerating] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  
 
   if (loading)
     return (
@@ -331,13 +375,141 @@ export default function GoalDetails() {
       </div>
     );
 
+  function handleDelete() {
+  setConfirmingDelete(true);
+}
+
+async function confirmDelete() {
+  await deleteGoal(goal.id);
+  navigate("/dashboard");
+}
+
   async function handleGenerate() {
     setGenerating(true);
     await generateRoadmap(goal);
     setGenerating(false);
   }
 
-  const months = goal.roadmap?.months || [];
+  // ================= DRAFT VIEW =================
+  // Drafts don't get a roadmap yet — show the saved specification
+  // and let the person finish editing it or delete it.
+if (goal.status === "draft") {
+    const specRows = [
+      ["Category", goal.category],
+      ["Experience Level", goal.experience_level],
+      ["Timeline", goal.timeline],
+      ["Weekly Study Hours", goal.study_hours],
+      ["Priority", goal.priority],
+      ["Learning Style", (goal.learning_style || []).join(", ") || "—"],
+    ];
+
+    const aiOptionLabels = {
+      includeResources: "Learning Resources",
+      includeProjects: "Practice Projects",
+      weeklyPlanner: "Weekly Planner",
+      habitTracker: "Habit Tracker",
+    };
+    const selectedAiOptions = Object.entries(goal.ai_options || {})
+      .filter(([, v]) => v)
+      .map(([k]) => aiOptionLabels[k] || k);
+
+    return (
+      <>
+       <ConfirmDeleteModal
+      goalTitle={confirmingDelete ? goal.title : null}
+      onCancel={() => setConfirmingDelete(false)}
+      onConfirm={confirmDelete}
+    />
+      <div className="max-w-3xl mx-auto">
+        <div
+          className="rounded-[36px] p-10"
+          style={{
+            ...styles.card,
+            background: `radial-gradient( <ConfirmDeleteModal
+      goalTitle={confirmingDelete ? goal.title : null}
+      onCancel={() => setConfirmingDelete(false)}
+      onConfirm={confirmDelete}
+    />circle at top right, rgba(255,138,61,.12), transparent 35%), var(--color-bg-elev)`,
+          }}
+        >
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs mb-6"
+            style={{ background: "rgba(255,138,61,.12)", color: "var(--color-primary)" }}
+          >
+            <FileEdit size={13} /> Draft — not started yet
+          </span>
+
+          <h1 className="text-4xl font-bold mb-3" style={styles.title}>
+            {goal.title || "Untitled goal"}
+          </h1>
+
+          {goal.description && (
+            <p className="mb-8 leading-8" style={styles.dim}>
+              {goal.description}
+            </p>
+          )}
+
+          <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            {specRows.map(([label, value]) => (
+              <div key={label} className="rounded-2xl px-5 py-4" style={styles.box}>
+                <div className="text-xs uppercase" style={styles.dim}>
+                  {label}
+                </div>
+                <div className="font-semibold mt-1">{value || "—"}</div>
+              </div>
+            ))}
+          </div>
+
+          {goal.motivation && (
+            <div className="rounded-2xl px-5 py-4 mb-6" style={styles.box}>
+              <div className="text-xs uppercase" style={styles.dim}>
+                Motivation
+              </div>
+              <div className="mt-1 leading-7">{goal.motivation}</div>
+            </div>
+          )}
+
+          {selectedAiOptions.length > 0 && (
+            <div className="rounded-2xl px-5 py-4 mb-8" style={styles.box}>
+              <div className="text-xs uppercase mb-2" style={styles.dim}>
+                AI Preferences
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {selectedAiOptions.map((label) => (
+                  <span
+                    key={label}
+                    className="text-xs rounded-full px-3 py-1.5"
+                    style={{ background: "rgba(255,138,61,.12)", color: "var(--color-primary)" }}
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              to={`/create-goal/${goal.id}`}
+              className="flex-1 text-center px-8 py-4 rounded-2xl font-semibold inline-flex items-center justify-center gap-2"
+              style={styles.button}
+            >
+              <FileEdit size={16} /> Edit & Finish Setup
+            </Link>
+            <button
+              onClick={handleDelete}
+              className="px-8 py-4 rounded-2xl font-semibold inline-flex items-center justify-center gap-2"
+              style={{ border: "1px solid var(--color-danger)", color: "var(--color-danger)" }}
+            >
+              <Trash2 size={16} /> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+      </>
+    );
+  }
+const months = goal.roadmap?.months || [];
 
   const currentMonth = months.find((m) => m.status === "current");
 
@@ -362,6 +534,11 @@ export default function GoalDetails() {
       <GameStyles />
 
       <LockedModal month={selectedMonth} onClose={() => setSelectedMonth(null)} />
+        <ConfirmDeleteModal
+  goalTitle={confirmingDelete ? goal.title : null}
+  onCancel={() => setConfirmingDelete(false)}
+  onConfirm={confirmDelete}
+/>
 
       <div className="max-w-7xl mx-auto">
           {/* ================= HERO ================= */}
@@ -434,10 +611,10 @@ export default function GoalDetails() {
               <div className="flex flex-col mt-12">
                 <div className="flex justify-center mb-4">
                   <div
-                    className="px-8 py-5 rounded-[30px] font-bold"
+                    className="px-8 py-5 rounded-[30px] font-bold inline-flex items-center gap-2"
                     style={{ ...styles.box, color: "var(--color-primary)" }}
                   >
-                    🚀 START JOURNEY
+                    <Rocket size={18} /> START JOURNEY
                   </div>
                 </div>
 
@@ -464,7 +641,7 @@ export default function GoalDetails() {
                     color: "#111",
                   }}
                 >
-                  <div className="text-7xl">🏆</div>
+                  <div className="flex justify-center"><Trophy size={56} /></div>
                   <h3 className="text-2xl font-bold">FINAL GOAL</h3>
                   <p className="mt-2">{goal.title}</p>
                 </div>
@@ -472,56 +649,65 @@ export default function GoalDetails() {
             </section>
           )}
 
-          {/* =============== CURRENT MISSION =============== */}
-          {currentMonth && (
-            <section className="mt-10 rounded-[36px] p-8" style={styles.card}>
-              <div className="flex justify-between items-center gap-6 flex-wrap">
-                <div>
-                  <p
-                    className="uppercase text-sm tracking-[.2em]"
-                    style={{ color: "var(--color-primary)" }}
-                  >
-                    Current Mission
-                  </p>
-                  <h3 className="text-3xl font-bold mt-3" style={styles.title}>
-                    {currentMonth.title}
-                  </h3>
-                </div>
-
+          {/* =============== MISSION / COACH / ACTIONS =============== */}
+          <div className="grid sm:grid-cols-3 gap-4 mt-10">
+            {currentMonth && (
+              <section className="rounded-3xl p-5" style={styles.card}>
+                <p
+                  className="uppercase text-[11px] tracking-[.15em]"
+                  style={{ color: "var(--color-primary)" }}
+                >
+                  Current Mission
+                </p>
+                <h3 className="text-lg font-bold mt-2 truncate" style={styles.title}>
+                  {currentMonth.title}
+                </h3>
                 <Link
                   to={`/goals/${goal.id}/month/${currentMonth.index}`}
-                  className="px-8 py-4 rounded-2xl font-semibold"
+                  className="inline-block mt-4 px-5 py-2.5 rounded-xl text-sm font-semibold"
                   style={styles.button}
                 >
                   Open Month →
                 </Link>
-              </div>
-            </section>
-          )}
+              </section>
+            )}
 
-          {/* ================= AI COACH ================= */}
-          <section className="mt-10 rounded-[36px] p-8" style={styles.card}>
-            <div className="flex gap-5">
-              <div className="text-5xl">🤖</div>
-              <div>
-                <h3 className="text-2xl font-bold" style={styles.title}>
+            <section className="rounded-3xl p-5" style={styles.card}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--color-bg-elev2)" }}>
+                  <Bot size={20} style={{ color: "var(--color-primary)" }} />
+                </div>
+                <h3 className="text-lg font-bold" style={styles.title}>
                   AI Coach
                 </h3>
-                <p className="mt-4 leading-8" style={styles.dim}>
-                  Stay consistent and complete your current milestone before
-                  moving forward.
-                  <br />
-                  <br />
-                  Each completed month unlocks new content, resources, and
-                  challenges.
-                </p>
               </div>
-            </div>
-          </section>
+              <p className="mt-3 text-sm leading-6" style={styles.dim}>
+                Stay consistent and complete your current milestone before moving forward.
+              </p>
+            </section>
+
+            <section className="rounded-3xl p-5 flex flex-col justify-center gap-3" style={styles.card}>
+              <Link
+                to={`/create-goal/${goal.id}`}
+                className="w-full text-center px-5 py-2.5 rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-1.5"
+                style={styles.button}
+              >
+                <FileEdit size={14} /> Edit Goal
+              </Link>
+              <button
+                onClick={handleDelete}
+                className="w-full text-xs font-semibold px-5 py-2.5 rounded-xl flex items-center justify-center gap-1.5"
+                style={{ border: "1px solid var(--color-danger)", color: "var(--color-danger)" }}
+              >
+                <Trash2 size={13} /> Delete Goal
+              </button>
+            </section>
+          </div>
       </div>
     </>
   );
 }
+
 
 function InfoBox({ title, value }) {
   return (
@@ -533,5 +719,3 @@ function InfoBox({ title, value }) {
     </div>
   );
 }
-
-

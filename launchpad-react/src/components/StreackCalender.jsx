@@ -1,43 +1,12 @@
 import { useContext, useMemo } from "react";
 import { GoalContext } from "./GoalContext";
+import { collectCompletedDays, computeStreak } from "./streakUtils";
+import { Flame } from "lucide-react";
 
-function collectCompletedDays(goals) {
-  const days = [];
-
-  for (const goal of goals) {
-    if (!goal.roadmap) continue;
-
-    for (const month of goal.roadmap.months) {
-      if (!month.detail) continue;
-
-      for (const day of month.detail.days || []) {
-        if (day.completed && day.completedAt) {
-          days.push(day.completedAt);
-        }
-      }
-    }
-  }
-
-  return days;
-}
-
-
-function calculateStreak(days) {
-  const dates = new Set(
-    days.map((d) => new Date(d).toDateString())
-  );
-
-  let streak = 0;
-  const today = new Date();
-
-  while (dates.has(today.toDateString())) {
-    streak++;
-    today.setDate(today.getDate() - 1);
-  }
-
-  return streak;
-}
-
+// Week starts on Saturday. JS getDay(): 0=Sun...6=Sat.
+// Map so Saturday -> 0, Sunday -> 1, ... Friday -> 6.
+const WEEKDAY_LABELS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+const toSaturdayFirstIndex = (jsDay) => (jsDay + 1) % 7;
 
 export default function StreakCalendar() {
 
@@ -51,12 +20,43 @@ export default function StreakCalendar() {
 
 
   const streak = useMemo(
-    () => calculateStreak(completedDays),
+    () => computeStreak(completedDays),
     [completedDays]
   );
 
 
-  const days = Array.from({ length: 28 });
+  const completedDates = useMemo(
+    () => new Set(completedDays.map((d) => new Date(d.completedAt).toDateString())),
+    [completedDays]
+  );
+
+  const today = new Date();
+
+  // Real month grid: weekday-aligned cells for the current month,
+  // padded with blanks so day 1 sits under its actual weekday column.
+  const monthLabel = today.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  const cells = useMemo(() => {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const firstOfMonth = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const leadingBlanks = toSaturdayFirstIndex(firstOfMonth.getDay());
+
+    const list = [];
+    for (let i = 0; i < leadingBlanks; i++) {
+      list.push(null);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      list.push(new Date(year, month, d));
+    }
+    // pad the tail so the grid always ends on a full week
+    while (list.length % 7 !== 0) {
+      list.push(null);
+    }
+    return list;
+  }, []);
 
 
   return (
@@ -101,13 +101,13 @@ export default function StreakCalendar() {
         >
 
           <div
-            className="text-2xl font-bold"
-            style={{
-              color:"var(--color-primary)"
-            }}
-          >
-            🔥 {streak}
-          </div>
+  className="text-2xl font-bold flex items-center gap-1.5"
+  style={{
+    color:"var(--color-primary)"
+  }}
+>
+  <Flame size={22} /> {streak}
+</div>
 
           <span
             className="text-xs"
@@ -124,31 +124,59 @@ export default function StreakCalendar() {
       </div>
 
 
+      <div dir="ltr">
 
-      <div className="grid grid-cols-7 gap-2">
+        <div className="text-center text-xs font-medium mb-2" style={{ color:"var(--color-ink-dim)" }}>
+          {monthLabel}
+        </div>
 
-        {days.map((_, index)=>{
-
-          const active =
-            index <  completedDays.length;
-
-
-          return (
-
+        <div className="grid grid-cols-7 gap-2 mb-2">
+          {WEEKDAY_LABELS.map((label, i) => (
             <div
-              key={index}
-              className="aspect-square rounded-md"
-              style={{
-                background: active
-                ? "var(--color-primary)"
-                : "var(--color-bg-elev2)",
-                opacity: active ? 1 : .45
-              }}
-            />
+              key={i}
+              className="text-center text-xs font-medium"
+              style={{ color:"var(--color-ink-dim)" }}
+            >
+              {label}
+            </div>
+          ))}
+        </div>
 
-          );
+        <div className="grid grid-cols-7 gap-2">
 
-        })}
+          {cells.map((date, index) => {
+
+            if (!date) {
+              return <div key={index} className="aspect-square" />;
+            }
+
+            const active = completedDates.has(date.toDateString());
+            const isToday = date.toDateString() === today.toDateString();
+
+            return (
+
+              <div
+                key={index}
+                title={date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                className="aspect-square rounded-md flex items-center justify-center text-[10px] font-medium"
+                style={{
+                  background: active
+                  ? "var(--color-primary)"
+                  : "var(--color-bg-elev2)",
+                  opacity: active ? 1 : .45,
+                  outline: isToday ? "2px solid var(--color-primary)" : "none",
+                  outlineOffset: "1px",
+                  color: active ? "var(--color-bg-elev)" : "var(--color-ink-dim)",
+                }}
+              >
+                {date.getDate()}
+              </div>
+
+            );
+
+          })}
+
+        </div>
 
       </div>
 
@@ -160,10 +188,10 @@ export default function StreakCalendar() {
         }}
       >
 
-        <span>Last 28 days</span>
+        <span>{monthLabel}</span>
 
         <span>
-          {completedDays.length} completed
+          {completedDates.size} active days
         </span>
 
       </div>

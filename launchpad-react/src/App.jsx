@@ -29,6 +29,7 @@ function App() {
       <Route path='/signUp' element={<SignUp/>}/>
 
       <Route path='/create-goal' element={<CreateGoal/>}/>
+      <Route path='/create-goal/:draftId' element={<CreateGoal/>}/>
       <Route element={<GoalLayout/>}>
 <Route path='/goals/:goalId' element={<GoalDetails/>}/>
     <Route path='/goals/:goalId/month/:monthIndex' element={<MonthDetails/>}/>

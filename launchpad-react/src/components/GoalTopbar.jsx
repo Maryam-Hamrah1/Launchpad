@@ -1,6 +1,9 @@
 import { useContext } from "react";
 import { ThemeContext } from "../components/ThemeContext";
 import { AuthContext } from "../components/AuthContext";
+import NotificationBell from "./NotificationBell"
+import { Link } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
 
 function HamburgerIcon({ isOpen }) {
   return (
@@ -41,32 +44,22 @@ export default function GoalTopbar({ mobileOpen, onToggleMobile }) {
         {/* Right */}
         <div className="flex items-center gap-3">
           <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-xl transition-all text-sm"
-            style={{
-              background: "var(--color-bg-elev)",
-              border: "1px solid var(--color-line)",
-              boxShadow: "var(--shadow-card)",
-            }}
-          >
-            {isLight ? "🌙" : "☀️"}
-          </button>
+  onClick={toggleTheme}
+  className="w-10 h-10 rounded-xl transition-all flex items-center justify-center"
+  style={{
+    background: "var(--color-bg-elev)",
+    border: "1px solid var(--color-line)",
+    boxShadow: "var(--shadow-card)",
+  }}
+>
+  {isLight ? <Moon size={16} /> : <Sun size={16} />}
+</button>
 
-          <button
-            className="relative w-10 h-10 rounded-xl text-sm"
-            style={{
-              background: "var(--color-bg-elev)",
-              border: "1px solid var(--color-line)",
-              boxShadow: "var(--shadow-card)",
-            }}
-          >
-            🔔
-            <span
-              className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-              style={{ background: "var(--color-primary)" }}
-            />
-          </button>
+          <NotificationBell/>
 
+          
+          {/* profile */}
+          <Link to="/profile">
           <div
             className="flex items-center gap-2 rounded-xl px-2.5 py-1.5"
             style={{
@@ -74,14 +67,14 @@ export default function GoalTopbar({ mobileOpen, onToggleMobile }) {
               border: "1px solid var(--color-line)",
               boxShadow: "var(--shadow-card)",
             }}
-          >
+            >
             <div
               className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
               style={{
                 background: "linear-gradient(135deg,var(--color-primary),var(--color-accent))",
                 color: "#111",
               }}
-            >
+              >
               {fullName.charAt(0).toUpperCase()}
             </div>
 
@@ -94,6 +87,7 @@ export default function GoalTopbar({ mobileOpen, onToggleMobile }) {
               </div>
             </div>
           </div>
+              </Link>
         </div>
       </div>
     </header>

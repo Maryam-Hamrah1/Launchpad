@@ -1,7 +1,3 @@
-// src/index.js
-// Generates the 12-month roadmap SKELETON only (titles + lock status).
-// Week/day details are generated later, on demand, per month.
-
 const CORS_HEADERS = {
  'Access-Control-Allow-Origin': '*',
  'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -29,6 +25,9 @@ export default {
   }
    if (url.pathname === '/month') {
     return await handleMonthRequest(request, env);
+   }
+   if (url.pathname === '/progress') {
+    return await handleProgressRequest(request, env);
    }
    
    // default route ("/") = full roadmap skeleton
@@ -310,6 +309,44 @@ Be encouraging but honest. Give specific, actionable advice tied to their actual
   const reply = data.choices[0].message.content;
 
   return new Response(JSON.stringify({ reply }), {
+    headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+  });
+}
+
+async function handleProgressRequest(request, env) {
+  const { goalsSummary } = await request.json();
+
+  const prompt = `You are Launchpad's AI coach writing a progress review for someone working toward their goals.
+
+Here is their current progress data (real numbers, not estimates):
+${JSON.stringify(goalsSummary, null, 2)}
+
+Write a short, honest progress review:
+1. "summary": 2-3 sentences evaluating their overall progress. Reference actual goal titles, percentages, or streak numbers from the data above. Be encouraging but specific and honest — do not just praise, point out anything that's stalling or behind if the data shows it.
+2. "nextSteps": an array of exactly 2-3 short, specific, actionable next steps for the upcoming week, grounded in the data above (e.g. which goal to focus on, what's currently blocking progress).
+
+Return ONLY valid JSON, no markdown, no explanation, matching exactly:
+{"summary":"string","nextSteps":["string"]}`;
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" },
+    }),
+  });
+
+  const rawText = await res.text();
+  if (!res.ok) throw new Error(`Progress feedback failed: ${rawText}`);
+  const data = JSON.parse(rawText);
+  const feedback = JSON.parse(data.choices[0].message.content);
+
+  return new Response(JSON.stringify({ feedback }), {
     headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
   });
 }
