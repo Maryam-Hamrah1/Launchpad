@@ -5,7 +5,7 @@ import {
   Target, Bot, BookOpen, Calendar, TrendingUp, MessageCircle,
   Map, Repeat, PenLine, CheckCircle2, Trophy, Bell, Moon, Sun,
   Check, Flame, Medal, Mail, MapPin, X,
-  Sparkles, Hand, Star,
+  Sparkles,  Star,
 } from "lucide-react";
 
 // Brand icons (removed from lucide-react v1+) as small inline SVGs
@@ -216,7 +216,7 @@ function DashboardMockup() {
                 >
                   <Sparkles size={9} /> AI Career Roadmap
                 </span>
-                <div className="text-[13px] font-bold display leading-tight flex items-center gap-1">Good morning, Maryam <Hand size={13} /></div>
+                <div className="text-[13px] font-bold display leading-tight flex items-center gap-1">Good morning, Maryam 👋</div>
                 <p className="text-[9px] mt-1.5 leading-4" style={{ color: "var(--color-ink-dim)" }}>
                   Track your goals, follow your AI roadmap, and keep moving toward your future.
                 </p>
