@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
+import { Flame } from "lucide-react";
 
 /* ===============================
         DAY NODE (game badge)
@@ -149,14 +150,14 @@ export default function MonthDetails() {
 
           {days.length > 0 && (
             <div
-              className="rounded-full px-4 py-2 text-sm font-bold"
+              className="rounded-full px-4 py-2 text-sm font-bold flex gap-1"
               style={{
                 background: "linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 18%, transparent), color-mix(in srgb, var(--color-success) 12%, transparent))",
                 border: "1px solid color-mix(in srgb, var(--color-primary) 40%, transparent)",
                 color: "var(--color-primary)",
               }}
             >
-              🔥 {doneCount} / {days.length} days
+              <Flame size={20}/>  {doneCount} / {days.length} days
             </div>
           )}
         </div>

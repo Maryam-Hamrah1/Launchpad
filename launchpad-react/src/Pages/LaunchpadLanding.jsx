@@ -38,7 +38,7 @@ const FEATURES = [
 
 const AI_CAPABILITIES = [
   { icon: Map, title: "Personalized Roadmaps", desc: "Built around your goal, experience level, and available time." },
-  { icon: Calendar, title: "Weekly Planning", desc: "Your roadmap breaks into a realistic weekly rhythm." },
+  { icon: Calendar, title: "Daily Planning", desc: "Your roadmap breaks into a realistic daily rhythm." },
   { icon: BookOpen, title: "Resource Recommendation", desc: "Curated courses and material matched to each milestone." },
   { icon: Bot, title: "AI Mentor", desc: "Ask questions and get unstuck without leaving your roadmap." },
   { icon: TrendingUp, title: "Progress Prediction", desc: "See where you're headed based on your current pace." },
@@ -517,7 +517,7 @@ export default function LaunchpadLanding() {
                 </div>
 
                 <div>
-                  <span className="mono text-[10px]" style={{ color: "var(--color-ink-dim)" }}>WEEKLY TASKS</span>
+                  <span className="mono text-[10px]" style={{ color: "var(--color-ink-dim)" }}>DAILY TASKS</span>
                   <div className="flex flex-col gap-1.5 mt-2">
                     {["Complete wireframing exercise", "Watch UI patterns course", "Review 2 case studies"].map((t, i) => (
                       <div key={t} className="flex items-center gap-2.5 rounded-lg px-3 py-2" style={{ background: "var(--color-bg)" }}>
