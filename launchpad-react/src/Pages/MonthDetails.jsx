@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
-import { Flame } from "lucide-react";
+import { Flame, Rocket } from "lucide-react";
 
 /* ===============================
         DAY NODE (game badge)
@@ -170,7 +170,7 @@ export default function MonthDetails() {
               border: "1px solid color-mix(in srgb, var(--color-primary) 35%, transparent)",
             }}
           >
-            <div className="text-6xl mb-3">🚀</div>
+            <div className="flex justify-center items-center mb-4"><Rocket size={42} strokeWidth={1.8} style={{ color: "var(--color-primary)" }} /></div>
             <h2
               className="text-2xl font-bold mb-2"
               style={{ fontFamily: "'Space Grotesk', sans-serif" }}

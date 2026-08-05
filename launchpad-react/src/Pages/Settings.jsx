@@ -170,7 +170,7 @@ export default function Settings() {
             color: "var(--color-ink)",
           }}
         >
-          <UserPlus size={16} /> Add Another Account
+          <UserPlus size={16} /> Switch Account
         </button>
 
         {otherAccounts.length > 0 && (

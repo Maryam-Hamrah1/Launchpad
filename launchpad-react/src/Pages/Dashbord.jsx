@@ -212,6 +212,7 @@ function GoalCard({ goal }) {
     </Link>
   );
 }
+
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
   const { goals, loading } = useContext(GoalContext);
