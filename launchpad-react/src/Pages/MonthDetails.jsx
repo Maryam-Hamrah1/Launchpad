@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
-import { Flame, Rocket } from "lucide-react";
+import { Flame, Rocket, ArrowLeft, Target } from "lucide-react";
 
 /* ===============================
         DAY NODE (game badge)
@@ -78,6 +78,7 @@ function DayNode({ day, goalId, monthIndex, isLocked, isCurrent, onLockedClick }
 export default function MonthDetails() {
   const { goalId, monthIndex } = useParams();
   const { goals, loading, generateMonthDetail } = useContext(GoalContext);
+  const navigate = useNavigate();
 
   const [generating, setGenerating] = useState(false);
   const [lockedMessage, setLockedMessage] = useState(null);
@@ -135,6 +136,16 @@ export default function MonthDetails() {
 
   return (
     <div className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-5">
+          <Link
+            to={`/goals/${goalId}`}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold hover:opacity-80 transition"
+            style={{ color: "var(--color-ink-dim)" }}
+          >
+           <ArrowLeft size={16} />  Back to Roadmap
+          </Link>
+        </div>
+
         <div className="mb-8 flex items-end justify-between flex-wrap gap-3">
           <div>
             <span className="font-mono text-xs text-[var(--color-ink-dim)]">

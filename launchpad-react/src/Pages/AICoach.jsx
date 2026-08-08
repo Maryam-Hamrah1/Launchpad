@@ -33,6 +33,59 @@ function buildGoalsContext(goals) {
     .join("\n");
 }
 
+function renderInline(text, keyPrefix) {
+  // turn **bold** into <strong>, leave everything else as plain text
+  const parts = text.split(/(\*\*[^*]+\*\*)/g).filter((p) => p !== "");
+  return parts.map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") ? (
+      <strong key={`${keyPrefix}-${i}`}>{part.slice(2, -2)}</strong>
+    ) : (
+      <span key={`${keyPrefix}-${i}`}>{part}</span>
+    )
+  );
+}
+
+function MessageContent({ content }) {
+  // The AI sometimes runs numbered/bulleted items together on one line
+  // instead of using real line breaks. Force a break before each marker
+  // so the list actually renders as a list.
+  const normalized = content
+    .replace(/\s+(?=\d+\.\s)/g, "\n")
+    .replace(/\s+(?=[-•]\s)/g, "\n");
+
+  const lines = normalized
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {lines.map((line, i) => {
+        const numbered = line.match(/^(\d+)\.\s+(.*)$/);
+        const bulleted = line.match(/^[-•]\s+(.*)$/);
+
+        if (numbered) {
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="flex-shrink-0 font-semibold">{numbered[1]}.</span>
+              <span>{renderInline(numbered[2], i)}</span>
+            </div>
+          );
+        }
+        if (bulleted) {
+          return (
+            <div key={i} className="flex gap-2">
+              <span className="flex-shrink-0">•</span>
+              <span>{renderInline(bulleted[1], i)}</span>
+            </div>
+          );
+        }
+        return <p key={i}>{renderInline(line, i)}</p>;
+      })}
+    </div>
+  );
+}
+
 function Avatar({ role, initial }) {
   const isUser = role === "user";
   return (
@@ -268,7 +321,7 @@ export default function AICoach() {
                           }
                     }
                   >
-                    {m.content}
+                    {isUser ? m.content : <MessageContent content={m.content} />}
                   </div>
                   {isUser && <Avatar role="user" initial={initial} />}
                 </div>

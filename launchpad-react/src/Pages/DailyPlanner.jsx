@@ -5,8 +5,59 @@ import { collectCompletedDays, computeStreak, hasCompletedToday } from "../compo
 import {
   Flame, PartyPopper, Lock, Medal, Target, Zap, BookOpen,
   Bot, Check, Library, Clapperboard, GraduationCap, Link2,
-  CheckCircle2, FlagTriangleRight,
+  CheckCircle2, FlagTriangleRight, ArrowLeft,
 } from "lucide-react";
+
+const PLANNER_NOTES_KEY = "planner-notes";
+
+function dateKey(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function loadPlannerNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(PLANNER_NOTES_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function normalizePlannerEntry(raw) {
+  if (typeof raw === "string") return { freeform: raw, missions: {} };
+  if (raw && typeof raw === "object") return { freeform: raw.freeform || "", missions: raw.missions || {} };
+  return { freeform: "", missions: {} };
+}
+
+// Syncs this day's mission note into the shared planner-notes store, so it
+// shows up on the Planner calendar when the corresponding date is selected.
+// Keyed by the day's completion date once completed, otherwise today (since
+// that's the real-world date the note is being written on).
+function syncMissionNoteToPlanner({ goalId, monthIndex, dayIndex, goalTitle, dayTitle, text, completedAt }) {
+  const missionId = `${goalId}-${monthIndex}-${dayIndex}`;
+  const targetKey = dateKey(completedAt ? new Date(completedAt) : new Date());
+  const notes = loadPlannerNotes();
+
+  // Remove any stale copy of this mission's note from other date buckets first.
+  Object.keys(notes).forEach((k) => {
+    const entry = normalizePlannerEntry(notes[k]);
+    if (entry.missions[missionId]) {
+      delete entry.missions[missionId];
+      if (!entry.freeform.trim() && Object.keys(entry.missions).length === 0) {
+        delete notes[k];
+      } else {
+        notes[k] = entry;
+      }
+    }
+  });
+
+  if (text.trim()) {
+    const targetEntry = normalizePlannerEntry(notes[targetKey]);
+    targetEntry.missions[missionId] = { goalId, monthIndex, dayIndex, goalTitle, dayTitle, text };
+    notes[targetKey] = targetEntry;
+  }
+
+  localStorage.setItem(PLANNER_NOTES_KEY, JSON.stringify(notes));
+}
 
 function StreakToast({ streak }) {
   if (streak === null) return null;
@@ -102,6 +153,15 @@ export default function DailyPlanner() {
   async function handleSaveNotes() {
     setSavingNotes(true);
     await saveDayNotes(goal, month.index, day.index, notesDraft);
+    syncMissionNoteToPlanner({
+      goalId: goal.id,
+      monthIndex: month.index,
+      dayIndex: day.index,
+      goalTitle: goal.title,
+      dayTitle: detail?.title || `Day ${day.index}`,
+      text: notesDraft,
+      completedAt: day.completedAt,
+    });
     setSavingNotes(false);
   }
 
@@ -138,6 +198,15 @@ export default function DailyPlanner() {
     <>
       <StreakToast streak={streakToast} />
       <div className="max-w-2xl mx-auto">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold mb-4 hover:opacity-80 transition"
+          style={{ color: "var(--color-ink-dim)" }}
+        >
+          <ArrowLeft size={16} /> Back
+        </button>
+
         {/* Hero header */}
         <div
           className="rounded-3xl p-8 mb-6 text-center"

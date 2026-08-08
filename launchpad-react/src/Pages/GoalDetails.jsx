@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { GoalContext } from "../components/GoalContext";
-import {Lock, Trash2, Trophy, FileEdit, Rocket, Bot,
+import {Lock, Trash2, Trophy, FileEdit, Rocket, Bot, ArrowLeft,
 } from "lucide-react";
 
 const BIOMES = [
@@ -418,6 +418,13 @@ if (goal.status === "draft") {
       onConfirm={confirmDelete}
     />
       <div className="max-w-3xl mx-auto">
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold mb-5 hover:opacity-80 transition"
+          style={styles.dim}
+        >
+          <ArrowLeft size={16} /> Back to Dashboard
+        </Link>
         <div
           className="rounded-[36px] p-10"
           style={{
@@ -538,6 +545,13 @@ const months = goal.roadmap?.months || [];
 />
 
       <div className="max-w-7xl mx-auto">
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 hover:opacity-80 transition"
+            style={styles.dim}
+          >
+            <ArrowLeft size={16} /> Back to Dashboard
+          </Link>
           {/* ================= HERO ================= */}
           <section
             className="rounded-[36px] p-10 mb-10"

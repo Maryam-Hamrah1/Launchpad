@@ -27,6 +27,20 @@ function saveNotes(notes) {
   localStorage.setItem("planner-notes", JSON.stringify(notes));
 }
 
+// A date entry can be a legacy plain string (old freeform-only notes) or
+// { freeform, missions } where missions holds notes written from the
+// per-goal Daily Planner page, keyed by `${goalId}-${monthIndex}-${dayIndex}`.
+function normalizeEntry(raw) {
+  if (typeof raw === "string") return { freeform: raw, missions: {} };
+  if (raw && typeof raw === "object") return { freeform: raw.freeform || "", missions: raw.missions || {} };
+  return { freeform: "", missions: {} };
+}
+
+function entryHasContent(raw) {
+  const entry = normalizeEntry(raw);
+  return Boolean(entry.freeform.trim()) || Object.keys(entry.missions).length > 0;
+}
+
 /* ===============================
         GOAL CARD (today's mission)
 ================================ */
@@ -233,7 +247,7 @@ function MiniCalendar({ selectedDate, onSelect, notes }) {
           const key = dateKey(cellDate);
           const isSelected = key === dateKey(selectedDate);
           const isToday = key === todayKey;
-          const hasNote = Boolean(notes[key]);
+          const hasNote = entryHasContent(notes[key]);
 
           return (
             <button
@@ -272,11 +286,15 @@ function MiniCalendar({ selectedDate, onSelect, notes }) {
 
 function NotePanel({ selectedDate, notes, onSave }) {
   const key = dateKey(selectedDate);
-  const [draft, setDraft] = useState(notes[key] || "");
+  const entry = normalizeEntry(notes[key]);
+  const [draft, setDraft] = useState(entry.freeform);
 
   useEffect(() => {
-    setDraft(notes[key] || "");
+    setDraft(entry.freeform);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
+
+  const missionNotes = Object.values(entry.missions || {});
 
   const label = selectedDate.toLocaleDateString("en-US", {
     weekday: "long",
@@ -305,6 +323,25 @@ function NotePanel({ selectedDate, notes, onSave }) {
           border: "1px solid var(--color-line)",
         }}
       />
+
+      {missionNotes.length > 0 && (
+        <div className="flex flex-col gap-2 mt-4">
+          <span className="text-xs font-mono" style={dimStyle}>From your Daily Planner</span>
+          {missionNotes.map((m) => (
+            <Link
+              key={`${m.goalId}-${m.monthIndex}-${m.dayIndex}`}
+              to={`/goals/${m.goalId}/month/${m.monthIndex}/day/${m.dayIndex}`}
+              className="block rounded-lg px-4 py-3 text-sm transition hover:brightness-110"
+              style={{ background: "var(--color-bg)", border: "1px solid var(--color-line)" }}
+            >
+              <span className="block text-xs font-mono mb-1" style={{ color: "var(--color-primary)" }}>
+                {m.goalTitle} — {m.dayTitle}
+              </span>
+              <span style={{ color: "var(--color-ink)" }}>{m.text}</span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -325,8 +362,10 @@ export default function Planner() {
   function handleSaveNote(key, text) {
     setNotes((prev) => {
       const updated = { ...prev };
-      if (text.trim()) {
-        updated[key] = text;
+      const entry = normalizeEntry(updated[key]);
+      const nextEntry = { freeform: text, missions: entry.missions };
+      if (text.trim() || Object.keys(nextEntry.missions).length > 0) {
+        updated[key] = nextEntry;
       } else {
         delete updated[key];
       }
